@@ -1,0 +1,11 @@
+[package]
+name = "ConfLang"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "clg" # Имя, которое будет у файла .exe / бинарника
+path = "src/main.rs"    # Указываем, какой файл является точкой входа (обычно src/main.rs)
+
+[dependencies]
+colored = "3.1.1"
