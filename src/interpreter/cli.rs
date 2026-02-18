@@ -1,6 +1,4 @@
 
-pub mod cli {
-    pub fn interpret(code: &str) {
-
-    }
+pub fn interpret(code: &str) {
+    
 }
