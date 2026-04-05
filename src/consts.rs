@@ -31,7 +31,7 @@ pub const NAME_EREROR : &str = "NameError";
 pub const TOKEN_NOT_FOUND_ERR : &str = "TokenNotFoundErr";
 
 
-const FIRM_COLOR: (u8, u8, u8) = (0, 162, 255); // #00A2FF
+const FIRM_COLOR: (u8, u8, u8) = (0, 162, 255); // #00a2ff
 const GREY: (u8, u8, u8) = (89, 89, 89);
 pub trait Colors {
     fn err(&self) -> ColoredString;
