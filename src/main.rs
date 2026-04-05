@@ -1,11 +1,14 @@
 mod interpreter;
 mod lexer;
+mod errors;
+mod consts;
 
-use crate::interpreter::cli;
+use crate::{errors::ErrHandler, interpreter::cli};
+use consts::Colors;
 use colored::*;
-use std::{env, fs, process, vec};
+use std::{env, fs, process};
 
-use lexer as other_lex;
+use crate::lexer::lexer::Lexer;
 
 fn read_file(file_path: String) -> String {
     let contents = match fs::read_to_string(&file_path) {
@@ -14,7 +17,7 @@ fn read_file(file_path: String) -> String {
         Err(error) => {
             eprintln!(
                 "{}: Could not read file '{}'.",
-                "Error".bold().color("#00A2FF"),
+                "Error".firm_color(),
                 &file_path
             );
             eprintln!("System message: {}", error);
@@ -25,7 +28,12 @@ fn read_file(file_path: String) -> String {
     return contents;
 }
 
+
 fn main() {
+    #[cfg(windows)]
+    let _ = control::set_virtual_terminal(true);
+    control::set_override(true);
+    
     let args: Vec<String> = env::args().collect();
 
     if &args.len() == &1 {
@@ -37,31 +45,31 @@ fn main() {
             println!("Here are the commands you can use in the console:");
             println!(
                 "\t\"{}\" - Runs a ConfLang module",
-                "clg <path to the file>".bold().color("#00A2FF")
+                "clg <path to the file>".firm_color()
             );
             println!(
                 "\t\"{}\" - Runs ConfLang in REPL mode",
-                "clg".bold().color("#00A2FF")
+                "clg".firm_color()
             );
             println!(
                 "\t\"{}\" - Opens the help page",
-                "clg --help".bold().color("#00A2FF")
+                "clg --help".firm_color()
             );
             println!(
-                "\t\"{}\" - Runs without creating a .clc file",
-                "clg --nocache <other args>".bold().color("#00A2FF")
+                "\t\"{}\" - Runs without creating a .clg file",
+                "clg --nocache <other args>".firm_color()
             );
             println!(
                 "\t\"{}\" - Runs in debug mode",
-                "clg --debug <other args>".bold().color("#00A2FF")
+                "clg --debug <other args>".firm_color()
             );
             println!(
                 "\t\"{}\" - Shows author and unlicense information",
-                "clg --author".bold().color("#00A2FF")
+                "clg --author".firm_color()
             );
             println!(
                 "{}",
-                "\t\"clg --donate\" - Support me financially :)".color("#595959")
+                "\t\"clg --donate\" - Support me financially :)".grey()
             );
             println!("")
         } else if &args[1] == &"--debug" {
@@ -71,17 +79,17 @@ fn main() {
             println!(
                 "Thank you very much for wanting to support me. My project is in the public domain, so I would be very grateful for your support. The link is below."
             );
-            println!("{}", "https://boosty.to".bold().color("#00A2FF"));
+            println!("{}", "https://boosty.to".firm_color());
             println!("");
         } else if &args[1] == &"--author" {
             println!("");
             println!(
                 "{}: Pavel (a. k. a. Paul, InfinityMen)",
-                "Author".bold().color("#00A2FF")
+                "Author".firm_color()
             );
             println!(
                 "{}: The unlicense (Public domain, https://unlicense.org)",
-                "License".bold().color("#00A2FF")
+                "License".firm_color()
             );
             println!("");
         } else if &args[1] == &"--paskhalko" {
@@ -91,20 +99,13 @@ fn main() {
 
             println!("Reading file {}", &file_path);
             let code: &str = &read_file(file_path.to_string());
-            let lex: other_lex::lexer::SageLexer = other_lex::lexer::SageLexer::new();
-            let res: Vec<other_lex::lexer::MacroToken> = lex.tokenize(&code);
+            println!("{}", &code);
             println!("--- РЕЗУЛЬТАТ РАБОТЫ ЛЕКСЕРА ---");
-            for token in res {
-                println!("\nСТРОКА {}: {} (ID: {})", token.line, token.name, token.id);
-                for (i, arg) in token.args.iter().enumerate() {
-                    print!("  Аргумент {}: ", i + 1);
-                    for micro in arg {
-                        print!("{:?} ", micro);
-                    }
-                    println!();
-                }
-            }
-            // cli::interpret(&code);
+            let lexer = Lexer::new();
+            let tokens = lexer.parse_code(&code, None);
+            println!("{:?}", tokens);
+
+            
         }
     }
 }
