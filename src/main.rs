@@ -33,7 +33,7 @@ fn main() {
     #[cfg(windows)]
     let _ = control::set_virtual_terminal(true);
     control::set_override(true);
-    
+
     let args: Vec<String> = env::args().collect();
 
     if &args.len() == &1 {
@@ -69,7 +69,7 @@ fn main() {
             );
             println!(
                 "{}",
-                "\t\"clg --donate\" - Support me financially :)".grey()
+                "\t\"clg --donate\" - Support me :)".grey()
             );
             println!("")
         } else if &args[1] == &"--debug" {
@@ -102,7 +102,7 @@ fn main() {
             println!("{}", &code);
             println!("--- РЕЗУЛЬТАТ РАБОТЫ ЛЕКСЕРА ---");
             let lexer = Lexer::new();
-            let tokens = lexer.parse_code(&code, None);
+            let tokens = lexer.parse_code(&code, None, false);
             println!("{:?}", tokens);
 
             

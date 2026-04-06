@@ -9,6 +9,7 @@ pub enum Token {
     BLOCK_START,
     BLOCK_END,
     NEWEXPR,
+    NEWLINE,
     COMMA,
 
     PLUS,
@@ -147,7 +148,7 @@ impl Lexer {
         return prepared;
     }
 
-    pub fn parse_code(&self, code: &str, err_h: Option<ErrHandler>) -> Vec<Token> {
+    pub fn parse_code(&self, code: &str, err_h: Option<ErrHandler>, is_inner: bool) -> Vec<Token> {
         let mut tokens:Vec<Token> = Vec::new();
         let lines = self.prepare_code(&code);
         let mut line_index=0;
@@ -158,6 +159,9 @@ impl Lexer {
             let remaining = &line[cur_pos_in_line..];
 
             if remaining.is_empty() || remaining.starts_with("//") {
+                if !is_inner {
+                    tokens.push(Token::NEWLINE);
+                }
                 line_index += 1;
                 cur_pos_in_line = 0;
                 continue;
@@ -193,7 +197,7 @@ impl Lexer {
                 
                 consts::FUNC_DEF => {
                     let name = &caps["name"];
-                    let args = self.parse_code(&caps["args"], Some(ErrHandler::new(line.to_string(), line_index + 1)));
+                    let args = self.parse_code(&caps["args"], Some(ErrHandler::new(line.to_string(), line_index + 1)), true);
                     
                     tokens.push(Token::FUNC_DEF(name.to_string()));
 
@@ -207,7 +211,7 @@ impl Lexer {
 
                 consts::FUNC_VOID => {
                     let name = &caps["name"];
-                    let args = self.parse_code(&caps["args"], Some(ErrHandler::new(line.to_string(), line_index + 1)));
+                    let args = self.parse_code(&caps["args"], Some(ErrHandler::new(line.to_string(), line_index + 1)), true);
 
                     tokens.push(Token::FUNC_VOID(name.to_string()));
                     tokens.push(Token::BLOCK_START);
@@ -220,7 +224,7 @@ impl Lexer {
 
                 consts::FUNC_CALL => {
                     let name = &caps["name"];
-                    let args = self.parse_code(&caps["args"], Some(ErrHandler::new(line.to_string(), line_index + 1)));
+                    let args = self.parse_code(&caps["args"], Some(ErrHandler::new(line.to_string(), line_index + 1)), true);
 
                     tokens.push(Token::FUNC_CALL(name.to_string()));
                     tokens.push(Token::BLOCK_START);
@@ -238,7 +242,7 @@ impl Lexer {
                 },
 
                 consts::PRINT => {
-                    let vals = self.parse_code(&caps["val"], Some(ErrHandler::new(line.to_string(), line_index + 1)));
+                    let vals = self.parse_code(&caps["val"], Some(ErrHandler::new(line.to_string(), line_index + 1)), true);
 
                     tokens.push(Token::PRINT);
 
@@ -251,8 +255,8 @@ impl Lexer {
                 },
 
                 consts::ASSIGN => {
-                    let val = self.parse_code(&caps["val"], Some(ErrHandler::new(line.to_string(), line_index + 1)));
-                    let var = self.parse_code(&caps["var"], Some(ErrHandler::new(line.to_string(), line_index + 1)));
+                    let val = self.parse_code(&caps["val"], Some(ErrHandler::new(line.to_string(), line_index + 1)), true);
+                    let var = self.parse_code(&caps["var"], Some(ErrHandler::new(line.to_string(), line_index + 1)), true);
 
                     tokens.push(Token::ASSIGN);
                     tokens.push(Token::BLOCK_START);
