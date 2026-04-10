@@ -137,22 +137,15 @@ impl Lexer {
         }
     }
 
-    fn prepare_code<'a> (&self, code: &'a str) -> Vec<&'a str> {
-        let lines = code.lines();
-        let mut prepared: Vec<&str> = Vec::new();
+    
 
-
-        for line in lines {
-            prepared.push(line.trim());
-        }
-        return prepared;
-    }
-
-    pub fn parse_code(&self, code: &str, err_h: Option<ErrHandler>, is_inner: bool) -> Vec<Token> {
+    pub fn parse_code(&self, code: &str, err_h: ErrHandler, is_inner: bool, main_line: usize) -> Vec<Token> {
         let mut tokens:Vec<Token> = Vec::new();
-        let lines = self.prepare_code(&code);
+        let lines = consts::prepare_code(&code);
         let mut line_index=0;
         let mut cur_pos_in_line:usize = 0;
+        let mut main_line = main_line;
+        let err_handler = err_h.clone();
 
         while line_index < lines.len() {
             let line = lines[line_index];
@@ -163,15 +156,12 @@ impl Lexer {
                     tokens.push(Token::NEWLINE);
                 }
                 line_index += 1;
+                main_line += 1;
                 cur_pos_in_line = 0;
                 continue;
             };
 
-            let mut err_handler: &ErrHandler = &ErrHandler::new(line.to_string(), line_index + 1);
-
-            if let Some(ref eh ) = err_h {
-                err_handler = &eh;
-            };
+            
 
             let mut earl_macth: Option<(&Rule, Captures, usize)> = None;
 
@@ -187,7 +177,7 @@ impl Lexer {
 
             if let Some((rule, caps, start_pos)) = earl_macth {
                 if start_pos > 0 {
-                    err_handler.syntax_err();
+                    err_handler.syntax_err(main_line);
                 }
 
                 let matched_str = caps.get(0).unwrap().as_str();
@@ -197,7 +187,7 @@ impl Lexer {
                 
                 consts::FUNC_DEF => {
                     let name = &caps["name"];
-                    let args = self.parse_code(&caps["args"], Some(ErrHandler::new(line.to_string(), line_index + 1)), true);
+                    let args = self.parse_code(&caps["args"], err_h.clone(), true, main_line);
                     
                     tokens.push(Token::FUNC_DEF(name.to_string()));
 
@@ -211,7 +201,7 @@ impl Lexer {
 
                 consts::FUNC_VOID => {
                     let name = &caps["name"];
-                    let args = self.parse_code(&caps["args"], Some(ErrHandler::new(line.to_string(), line_index + 1)), true);
+                    let args = self.parse_code(&caps["args"], err_h.clone(), true, main_line);
 
                     tokens.push(Token::FUNC_VOID(name.to_string()));
                     tokens.push(Token::BLOCK_START);
@@ -224,7 +214,7 @@ impl Lexer {
 
                 consts::FUNC_CALL => {
                     let name = &caps["name"];
-                    let args = self.parse_code(&caps["args"], Some(ErrHandler::new(line.to_string(), line_index + 1)), true);
+                    let args = self.parse_code(&caps["args"], err_h.clone(), true, main_line);
 
                     tokens.push(Token::FUNC_CALL(name.to_string()));
                     tokens.push(Token::BLOCK_START);
@@ -242,7 +232,7 @@ impl Lexer {
                 },
 
                 consts::PRINT => {
-                    let vals = self.parse_code(&caps["val"], Some(ErrHandler::new(line.to_string(), line_index + 1)), true);
+                    let vals = self.parse_code(&caps["val"], err_h.clone(), true, main_line);
 
                     tokens.push(Token::PRINT);
 
@@ -255,8 +245,8 @@ impl Lexer {
                 },
 
                 consts::ASSIGN => {
-                    let val = self.parse_code(&caps["val"], Some(ErrHandler::new(line.to_string(), line_index + 1)), true);
-                    let var = self.parse_code(&caps["var"], Some(ErrHandler::new(line.to_string(), line_index + 1)), true);
+                    let val = self.parse_code(&caps["val"], err_h.clone(), true, main_line);
+                    let var = self.parse_code(&caps["var"], err_h.clone(), true, main_line);
 
                     tokens.push(Token::ASSIGN);
                     tokens.push(Token::BLOCK_START);
@@ -314,7 +304,7 @@ impl Lexer {
                             tokens.push(Token::FLOAT(v));
                         },
 
-                        Err(_) => {err_handler.value_overflow_err();}
+                        Err(_) => {err_handler.value_overflow_err(main_line);}
                     };
                     
                 },
@@ -327,7 +317,7 @@ impl Lexer {
                             tokens.push(Token::INT(v));
                         },
 
-                        Err(_) => {err_handler.value_overflow_err();}
+                        Err(_) => {err_handler.value_overflow_err(main_line);}
                     };
                     
                 },
@@ -363,12 +353,12 @@ impl Lexer {
                 }
                 
                 _ => {
-                    err_handler.token_not_found_err();
+                    err_handler.token_not_found_err(main_line);
                 }
                 }
                 cur_pos_in_line += matched_len;
             } else {
-                err_handler.syntax_err();
+                err_handler.syntax_err(main_line);
             }
         }
 

@@ -30,6 +30,9 @@ pub const ZERO_DIVISION_ERROR : &str = "ZeroDivisionError";
 pub const NAME_EREROR : &str = "NameError";
 pub const TOKEN_NOT_FOUND_ERR : &str = "TokenNotFoundErr";
 
+pub const MODULE_NOT_FOUND_ERROR : &str = "ModuleNotFoundError";
+pub const INCORRECT_ARGUMENT_ERROR : &str = "IncorrectArgumentError";
+
 
 const FIRM_COLOR: (u8, u8, u8) = (0, 162, 255); // #00a2ff
 const GREY: (u8, u8, u8) = (89, 89, 89);
@@ -50,3 +53,14 @@ impl Colors for &str {
         self.truecolor(GREY.0, GREY.1, GREY.2)
     }
 }
+
+pub fn prepare_code<'a> (code: &'a str) -> Vec<&'a str> {
+        let lines = code.lines();
+        let mut prepared: Vec<&str> = Vec::new();
+
+
+        for line in lines {
+            prepared.push(line.trim());
+        }
+        return prepared;
+    }
