@@ -36,7 +36,7 @@ impl ErrHandler {
         }
     }
 
-    fn errs_template(&self, code: &str, line_num: usize) {
+    fn errs_template(&self, code: &str, line_num: usize) -> ! {
             eprintln!("");
             if !self.get_note_msg(code).is_empty() {
                 eprintln!("Line {}: \"{}\"\n\t{}: {}\n\t{}: {}", line_num, self.lines[line_num - 1], code.err(), self.get_err_msg(&code), "Note".firm_color(), self.get_note_msg(&code));
@@ -47,24 +47,24 @@ impl ErrHandler {
             std::process::exit(1);
     }
 
-    pub fn syntax_err(&self, line_num: usize) {
+    pub fn syntax_err(&self, line_num: usize) -> ! {
         self.errs_template(consts::SYNTAX_ERROR, line_num);
     }
 
-    pub fn value_overflow_err(&self, line_num: usize) {
-        self.errs_template(consts::SYNTAX_ERROR, line_num);
+    pub fn value_overflow_err(&self, line_num: usize) -> ! {
+        self.errs_template(consts::VALUE_OVERFLOW_ERROR, line_num);
     }
 
-    pub fn zero_division_err(&self, line_num: usize) {
-        self.errs_template(consts::SYNTAX_ERROR, line_num);
+    pub fn zero_division_err(&self, line_num: usize) -> ! {
+        self.errs_template(consts::ZERO_DIVISION_ERROR, line_num);
     }
 
-    pub fn name_err(&self, line_num: usize) {
-        self.errs_template(consts::SYNTAX_ERROR, line_num);
+    pub fn name_err(&self, line_num: usize) -> ! {
+        self.errs_template(consts::NAME_EREROR, line_num);
     }
 
-    pub fn token_not_found_err(&self, line_num: usize) {
-        self.errs_template(consts::SYNTAX_ERROR, line_num);
+    pub fn token_not_found_err(&self, line_num: usize) -> ! {
+        self.errs_template(consts::TOKEN_NOT_FOUND_ERR, line_num);
     }
 
 }

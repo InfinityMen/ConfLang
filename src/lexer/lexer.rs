@@ -24,7 +24,7 @@ pub enum Token {
     FUNC_DEF(String),
     FUNC_VOID(String),
     FUNC_CALL(String),
-    RETURN(String),
+    RETURN,
     PRINT,
     INPUT,
     VAR(String),
@@ -104,13 +104,13 @@ impl Lexer {
                 },
                 Rule {
                     name: consts::FLOAT, 
-                    re: Regex::new(r#"^\s*(?P<val>-?\d+\.\d+)\s*"#).unwrap()},
+                    re: Regex::new(r#"^\s*(?P<val>-?\d+\.\d+)(?:\s|,|\]|$)"#).unwrap()},
                 Rule {
                     name: consts::INT, 
-                    re: Regex::new(r"^\s*(?P<val>-?\d+)\s*").unwrap() },
+                    re: Regex::new(r"^\s*(?P<val>-?\d+)(?:\s|,|\]|$)").unwrap() },
                 Rule {
                     name: consts::STR, 
-                    re: Regex::new(r#"^\s*"(?P<val>.*?)"\s*"#).unwrap()},
+                    re: Regex::new(r#"^\s*"(?P<val>(?:[^"\\]|\\.)*)""#).unwrap()},
                 Rule {
                     name: consts::BOOL, 
                     re: Regex::new(r"^\s*(?P<val>Yang|Yin)\b").unwrap()
@@ -226,7 +226,10 @@ impl Lexer {
                 },
 
                 consts::RETURN => {
-                    tokens.push(Token::RETURN(caps["val"].to_string()));
+                    tokens.push(Token::RETURN);
+                    tokens.push(Token::BLOCK_START);
+                    tokens.extend(self.parse_code(&caps["val"].to_string(), err_handler.clone(), true, main_line));
+                    tokens.push(Token::BLOCK_END);
                     tokens.push(Token::NEWEXPR);
                     
                 },
