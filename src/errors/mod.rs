@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use crate::consts;
 use crate::consts::Colors;
+
+mod consts;
 
 
 #[derive(Clone)]
@@ -15,6 +15,17 @@ impl ErrHandler {
             
         }
         
+    }
+
+    fn get_err_name(&self, code: &str) -> &str {
+        match code {
+            consts::SYNTAX_ERROR => "Incorrect syntax.",
+            consts::VALUE_OVERFLOW_ERROR => "The value is too large to be represented in 64-bit format.",
+            consts::ZERO_DIVISION_ERROR => "Division by zero is impossible.",
+            consts::NAME_EREROR => "Variable not found.",
+            consts::TOKEN_NOT_FOUND_ERR => "Token not found.",
+            _ => "Unknow error occured",
+        }
     }
 
     fn get_err_msg(&self, code: &str) -> &str {

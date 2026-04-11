@@ -1,6 +1,6 @@
-use std::{collections::{HashMap, btree_map::Values, hash_map}, ffi::CStr, vec};
+use std::vec;
 use crate::errors::ErrHandler;
-use regex::{Captures, Regex, bytes::CaptureMatches};
+use regex::{Captures, Regex,};
 
 use crate::consts;
 
@@ -8,7 +8,6 @@ use crate::consts;
 pub enum Token {
     BLOCK_START,
     BLOCK_END,
-    NEWEXPR,
     NEWLINE,
     COMMA,
 
@@ -194,7 +193,6 @@ impl Lexer {
                     tokens.push(Token::BLOCK_START);
                     tokens.extend(args);
                     tokens.push(Token::BLOCK_END);
-                    tokens.push(Token::NEWEXPR);
 
                     
                 },
@@ -207,7 +205,6 @@ impl Lexer {
                     tokens.push(Token::BLOCK_START);
                     tokens.extend(args);
                     tokens.push(Token::BLOCK_END);
-                    tokens.push(Token::NEWEXPR);
                     
                     
                 },
@@ -230,7 +227,6 @@ impl Lexer {
                     tokens.push(Token::BLOCK_START);
                     tokens.extend(self.parse_code(&caps["val"].to_string(), err_handler.clone(), true, main_line));
                     tokens.push(Token::BLOCK_END);
-                    tokens.push(Token::NEWEXPR);
                     
                 },
 
@@ -242,7 +238,6 @@ impl Lexer {
                     tokens.push(Token::BLOCK_START);
                     tokens.extend(vals);
                     tokens.push(Token::BLOCK_END);
-                    tokens.push(Token::NEWEXPR);
 
                     
                 },
@@ -259,7 +254,6 @@ impl Lexer {
                     tokens.push(Token::BLOCK_START);
                     tokens.extend(val);
                     tokens.push(Token::BLOCK_END);
-                    tokens.push(Token::NEWEXPR);
 
                     
                 },

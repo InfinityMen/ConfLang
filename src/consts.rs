@@ -24,14 +24,7 @@ pub const STR: &str = "STR";
 pub const VAR: &str = "VAR";
 pub const TRUE: &str = "Yang";
 
-pub const SYNTAX_ERROR : &str = "SyntaxError";
-pub const VALUE_OVERFLOW_ERROR : &str = "ValueOverflowError";
-pub const ZERO_DIVISION_ERROR : &str = "ZeroDivisionError";
-pub const NAME_EREROR : &str = "NameError";
-pub const TOKEN_NOT_FOUND_ERR : &str = "TokenNotFoundErr";
 
-pub const MODULE_NOT_FOUND_ERROR : &str = "ModuleNotFoundError";
-pub const INCORRECT_ARGUMENT_ERROR : &str = "IncorrectArgumentError";
 
 
 const FIRM_COLOR: (u8, u8, u8) = (0, 162, 255); // #00a2ff
