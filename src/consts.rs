@@ -1,32 +1,101 @@
 use colored::*;
 
-pub const BLOCK_START: &str = "BLOCK_START";
-pub const BLOCK_END: &str = "BLOCK_END";
-pub const COMMA: &str = "COMMA";
-pub const PLUS: &str = "PLUS";
-pub const MINUS: &str = "MINUS";
-pub const MULTIPLY: &str = "MULTIPLY";
-pub const DIVIDE: &str = "DIVIDE";
-pub const EXPONENTIATION: &str = "EXPONENTIATION";
-pub const DIV_WITH_REMAIN: &str = "DIV_WITH_REMAIN";
-pub const REMAIN_FROM_DIV: &str = "REMAIN_FROM_DIV";
-pub const ASSIGN: &str = "ASSIGN";
-pub const FUNC_DEF: &str = "FUNC_DEF";
-pub const FUNC_VOID: &str = "FUNC_VOID";
-pub const FUNC_CALL: &str = "FUNC_CALL";
-pub const RETURN: &str = "RETURN";
-pub const PRINT: &str = "PRINT";
-pub const INPUT: &str = "INPUT";
+
+
+pub const NEWLINE: &str = "NEWLINE";
+pub const WHITESPACE: &str = "WHITESPACE";
+
+
+// func_def
+pub const TO: &str = "TO";
+pub const STUDY: &str = "STUDY";
+pub const THE: &str = "THE";
+pub const RITUAL: &str = "RITUAL";
+pub const OF: &str = "OF";
+pub const WITH: &str = "WITH";
+pub const IS: &str = "IS";
+pub const A: &str = "A";
+pub const PLEASURE: &str = "PLEASURE";
+
+
+// func_call
+pub const LET: &str = "LET";
+pub const US: &str = "US";
+pub const CONSULT: &str = "CONSULT";
+pub const WISDOM: &str = "WISDOM";
+pub const REGRADING: &str = "REGRADING";
+
+
+// return
+pub const BEGINNING: &str = "BEGINNING";
+pub const DEFINITION: &str = "DEFINITION";
+pub const TERMS: &str = "TERMS";
+
+
+// print
+pub const HE: &str = "HE";
+pub const FIRST: &str = "FIRST";
+pub const PRESENTS: &str = "PRESENTS";
+pub const HIS: &str = "HIS";
+pub const WORDS: &str = "WORDS";
+pub const AS: &str = "AS";
+pub const THEN: &str = "THEN";
+pub const ACCORDING: &str = "ACCORDING";
+pub const THEM: &str = "THEM";
+pub const ACTS: &str = "ACTS";
+
+
+// assign
+pub const WHO: &str = "WHO";
+pub const BY: &str = "BY";
+pub const REANIMATING: &str = "REANIMATING";
+pub const CAN: &str = "CAN";
+pub const GAIN: &str = "GAIN";
+pub const KNOWLEGE: &str = "KNOWLEGE";
+
+// operators (by words)
+pub const HARMONIZED: &str = "HARMONIZED";
+pub const DIMINISHED: &str = "DIMINISHED";
+pub const MULTIPLED: &str = "MULTIPLED";
+pub const SHARED: &str = "SHARED";
+pub const AMONG: &str = "AMONG";
+pub const RAISED: &str = "RAISED";
+pub const POWER: &str = "POWER";
+pub const PARTITIONED: &str = "PARTITIONED";
+pub const REMAINDER: &str = "REMAINDER";
+
+
+// function word
+pub const AND: &str = "AND";
+
+
+// bool
+pub const YANG: &str = "YANG";
+pub const YIN: &str = "YIN";
+
+
+// symbols
+pub const COMMA: &str = "СOMMA";
+pub const DOT: &str = "DOT";
+pub const LBRACE: &str = "LBRACE";
+pub const RBRACE: &str = "RBRACE";
+
+
+// nums
 pub const FLOAT: &str = "FLOAT";
 pub const INT: &str = "INT";
-pub const BOOL: &str = "BOOL";
-pub const STR: &str = "STR";
+
+
+// string
+pub const QUOTE: &str = "QUOTE";
+pub const STR: &str = "I_NEVER_MATCHES";
+
+
+// vars
 pub const VAR: &str = "VAR";
-pub const TRUE: &str = "Yang";
 
 
-
-
+// module for easy use of common colors
 const FIRM_COLOR: (u8, u8, u8) = (0, 162, 255); // #00a2ff
 const GREY: (u8, u8, u8) = (89, 89, 89);
 pub trait Colors {
@@ -47,13 +116,24 @@ impl Colors for &str {
     }
 }
 
-pub fn prepare_code<'a> (code: &'a str) -> Vec<&'a str> {
-        let lines = code.lines();
-        let mut prepared: Vec<&str> = Vec::new();
+pub fn prepare_code<'a> (code: &str) -> Vec<&str> {
 
+    code.lines().collect()
 
-        for line in lines {
-            prepared.push(line.trim());
-        }
-        return prepared;
     }
+
+pub trait DebugCheck {
+    fn check_debug(&self, debug: bool) -> &str;
+}
+
+impl DebugCheck for &str {
+    fn check_debug(&self, debug: bool) -> &str {
+        if debug {
+            self
+        } else {
+            ""
+        }
+    }
+}
+
+pub const ALLOWED_EXTENSIONS: [&str; 2] = ["clg", "txt"];
