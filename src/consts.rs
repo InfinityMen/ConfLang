@@ -116,24 +116,4 @@ impl Colors for &str {
     }
 }
 
-pub fn prepare_code<'a> (code: &str) -> Vec<&str> {
-
-    code.lines().collect()
-
-    }
-
-pub trait DebugCheck {
-    fn check_debug(&self, debug: bool) -> &str;
-}
-
-impl DebugCheck for &str {
-    fn check_debug(&self, debug: bool) -> &str {
-        if debug {
-            self
-        } else {
-            ""
-        }
-    }
-}
-
 pub const ALLOWED_EXTENSIONS: [&str; 2] = ["clg", "txt"];

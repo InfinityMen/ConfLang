@@ -1,7 +1,8 @@
 use super::file::{File, FileId};
 use crate::consts;
-use std::{collections::HashMap, fs, path::PathBuf};
+use std::{collections::HashMap, fs, path::{Path, PathBuf}};
 
+#[derive(Debug, Clone)]
 pub struct SourceManager {
     files: HashMap<FileId, File>,
     max_id: Option<usize>,
@@ -15,7 +16,7 @@ impl SourceManager {
         }
     }
 
-    pub fn push_file(&mut self, path: PathBuf) -> FileId {
+    pub fn push_file(&mut self, path: &Path) -> FileId {
         let f_path: PathBuf = match fs::canonicalize(&path) {
             Ok(v) => v,
             Err(_) => panic!("Couldn`t cannonicalize file"),

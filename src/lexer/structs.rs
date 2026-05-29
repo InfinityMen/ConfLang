@@ -1,4 +1,4 @@
-use crate::span::Span;
+use crate::file_manager::span::Span;
 
 #[derive(Debug, Clone)]
 pub struct Token {

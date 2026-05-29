@@ -38,7 +38,7 @@ impl ConsoleParser {
             Rule {name: "DEBUG", re: Regex::new(r"^-debug$").unwrap()},
             Rule {name: "WARNING", re: Regex::new(r"^-warn$").unwrap()},
             Rule {name: "ERROR", re: Regex::new(r"^-err$").unwrap()},
-            Rule {name: "FILE", re: Regex::new(r#"^(?!-)(?:[a-zA-Z]:\\|\.{1,2}[\\/]|/)?(?:[^<>:"|?*\r\n]+[\\/])*[^<>:"|?*\r\n]+(?:\.[a-zA-Z0-9]+)?$"#).unwrap()},
+            Rule {name: "FILE", re: Regex::new(r#"^(?:[a-zA-Z]:\\|\.{1,2}[\\/]|/)?(?:[^<>:"|?*\r\n]+[\\/])*[^<>:"|?*\r\n]+(?:\.[a-zA-Z0-9]+)?$"#).unwrap()},
 
         ];
 

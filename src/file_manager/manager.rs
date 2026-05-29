@@ -18,6 +18,7 @@ pub struct FileManager {
     nocache: bool,
     err_h: ErrHandler,
     pos: PosIndex,
+    lex: Lexer
 }
 
 impl FileManager {
@@ -29,12 +30,13 @@ impl FileManager {
             nocache: false,
             err_h: ErrHandler::new(),
             pos: PosIndex::new(),
+            lex: Lexer::new()
         }
     }
 
     pub fn push_file(&mut self, path: PathBuf) -> FileId {
 
-        let file_id = self.sm.push_file(path);
+        let file_id = self.sm.push_file(&path);
 
         let text = self.sm.get_file_src(file_id);
 
@@ -45,18 +47,14 @@ impl FileManager {
         file_id
     }
 
-    fn read_file(&self, path: PathBuf) -> String {
-        let txt = match fs::read_to_string(&path) {
-            Ok(v) => v,
-            Err(_) => panic!("file {:?} not found", path),
+    fn exec_file(&mut self, id: FileId) {
+
+        let tokens = match self.lex.lex_code(id, &self.sm, &self.pos) {
+            Ok(t) => t,
+            Err(_) => unreachable!("пока что unreachable")
         };
 
-        txt
-    }
-
-    fn exec_file(&self, id: FileId) {
-
-        let lexer = Lexer::new(self);
+        println!("tokens:\n{:?}", tokens)
         
     }
 
@@ -167,6 +165,7 @@ impl FileManager {
 
         if was_path {
             let id = self.push_file(file_path);
+            self.exec_file(id);
         } else if !was_ind_arg {
             self.repl_mode = true;
             println!("REPL mode was not realised yet.")
