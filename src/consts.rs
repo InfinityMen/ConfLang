@@ -88,7 +88,7 @@ pub const INT: &str = "INT";
 
 // string
 pub const QUOTE: &str = "QUOTE";
-pub const STR: &str = "I_NEVER_MATCHES";
+pub const STR: &str = "STR_MODE";
 
 
 // vars

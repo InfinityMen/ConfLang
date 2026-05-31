@@ -6,7 +6,7 @@ pub mod enums;
 use core::fmt;
 use std::{self, collections::{HashMap, HashSet, hash_map}, fmt::format};
 
-use crate::{consts::Colors, errors::enums::{ErrLevel, ErrPlace, ErrStage}, file_manager::file::FileId, parser, span::{PosIndex, Span}};
+use crate::{consts::Colors, errors::enums::{ErrLevel, ErrPlace, ErrStage}, file_manager::file::FileId, parser, file_manager::span::{PosIndex, Span}};
 use enums::ErrName;
 
 
