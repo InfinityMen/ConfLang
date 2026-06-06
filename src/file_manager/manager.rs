@@ -125,7 +125,7 @@ impl FileManager {
                 }
                 ConsoleArg::Author => {
                     if !was_ind_arg {
-                        println!("Text for the authors pange was wrinted yet!");
+                        println!("Text about the authors was not wrinted yet!");
                         was_ind_arg = true
                     } else {
                         panic!("Inderpendent arguments were declared in console more than 1 time.")

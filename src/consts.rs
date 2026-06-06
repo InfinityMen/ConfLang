@@ -57,7 +57,7 @@ pub const KNOWLEGE: &str = "KNOWLEGE";
 pub const HARMONIZED: &str = "HARMONIZED";
 pub const DIMINISHED: &str = "DIMINISHED";
 pub const MULTIPLED: &str = "MULTIPLED";
-pub const SHARED: &str = "SHARED";
+pub const SHARED: &str = "SHARED"; 
 pub const AMONG: &str = "AMONG";
 pub const RAISED: &str = "RAISED";
 pub const POWER: &str = "POWER";
@@ -106,7 +106,7 @@ pub trait Colors {
 
 impl Colors for &str {
     fn err(&self) -> ColoredString {
-        self.red().bold()
+        self.red()
     }
     fn firm_color(&self) -> ColoredString {
         self.truecolor(FIRM_COLOR.0, FIRM_COLOR.1, FIRM_COLOR.2)
