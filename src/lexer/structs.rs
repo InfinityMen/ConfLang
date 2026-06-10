@@ -4,9 +4,20 @@ use crate::file_manager::span::Span;
 pub struct Token {
 
     pub token_type: TokenType,
-
+    pub val: TokenVal,
     pub span: Span
 
+}
+
+
+#[derive(Debug, Clone)]
+pub enum TokenVal {
+    Int(i64),
+    Str(String),
+    Bool(bool),
+    Float(f64),
+    Var(String),
+    None
 }
 
 
@@ -80,9 +91,9 @@ pub enum TokenType {
     RBRACE,
     
     // data
-    VAR(String),
-    INT(i64),
-    FLOAT(f64),
-    STR(String),
-    BOOL(bool),
+    VAR,
+    INT,
+    FLOAT,
+    STR,
+    BOOL,
 }

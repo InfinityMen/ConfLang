@@ -3,7 +3,6 @@ use crate::lexer::structs::{Token, TokenType};
 #[derive(Debug, Clone)]
 pub enum Stmt {
     FuncDef {name: String, args: Vec<String>, body: Vec<Stmt>},
-    FuncVoid {name: String, args: Vec<Stmt>},
     FuncCall {name: String, args: Vec<Stmt>},
     Return {value: Vec<Stmt>},
     Print{value: Vec<Stmt>},
@@ -35,5 +34,7 @@ pub enum RuleItem {
         last_sep: Option<TokenType>
     },
     Optional(Box<RuleItem>),
-    Sequence(Vec<RuleItem>)
+    Sequence(Vec<RuleItem>),
+    OneOF(Vec<RuleItem>),
+    Everything
 }

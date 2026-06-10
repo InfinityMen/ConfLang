@@ -88,11 +88,26 @@ pub const INT: &str = "INT";
 
 // string
 pub const QUOTE: &str = "QUOTE";
-pub const STR: &str = "STR_MODE";
+pub const STR_MODE: &str = "STR_MODE";
 
 
 // vars
 pub const VAR: &str = "VAR";
+
+
+pub const STR: &str = "STR";
+
+
+// parser consts
+pub const BOOL: &str = "BOOL";
+pub const ADD: &str = "ADD";
+pub const SUB: &str = "SUB";
+pub const MUL: &str = "MUL";
+pub const DIV: &str = "DIV";
+pub const EXP: &str = "EXP";
+pub const DIV_WITH_REM: &str = "DIV_WITH_REM";
+pub const REM_FROM_DIV: &str = "REM_FROM_DIV";
+pub const FUNC_CALL_EXPR: &str = "FUNC_CALL_EXPR";
 
 
 // module for easy use of common colors
