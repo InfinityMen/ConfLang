@@ -1,5 +1,14 @@
-use crate::file_manager::file::FileId;
-use std::fmt::{self, Debug};
+use crate::file_manager::{file::FileId, span::Span};
+use std::fmt;
+
+#[derive(Debug, Clone)]
+pub struct Error {
+    name: ErrName,
+    level: ErrLevel,
+    stage: ErrStage,
+    span: Span,
+    descr: String,
+}
 
 #[derive(Debug, Clone)]
 pub enum ErrStage {
@@ -14,6 +23,7 @@ pub enum ErrName {
     InvalidConsoleArgument,
     InvalidExtension,
     ModuleNotFound,
+    
 
     IncorrectSyntax,
     UnusedCharacter,
@@ -34,6 +44,9 @@ pub enum ErrName {
     DivisionByZero,
 
     InternalError,
+
+    UnusedVar,
+    UnusedBracets,
 }
 
 impl fmt::Display for ErrName {

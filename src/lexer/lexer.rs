@@ -2,7 +2,12 @@ use super::structs::{Token, TokenType};
 use crate::{
     consts::{self},
     errors::{ErrHandler, Error},
-    file_manager::{file::FileId, sm::SourceManager, span::{PosIndex, Span}}, lexer::structs::{TokenType::NEWLINE, TokenVal},
+    file_manager::{
+        file::FileId,
+        sm::SourceManager,
+        span::{PosIndex, Span},
+    },
+    lexer::structs::{TokenType::NEWLINE, TokenVal},
 };
 use core::f64;
 use regex::{Match, Regex};
@@ -170,7 +175,7 @@ impl Lexer {
                 },
                 Rule {
                     name: consts::KNOWLEGE,
-                    re: Regex::new(r"(?i)^knowledge\b").unwrap(),
+                    re: Regex::new(r"(?i)^knowlege\b").unwrap(),
                 },
                 // --- операторы (по словам) ---
                 Rule {
@@ -290,6 +295,11 @@ impl Lexer {
         let mut is_esc = false;
         let mut res = String::new();
 
+        println!(
+            "Started string mode. Input text:\n{}",
+            code[start..].to_string()
+        );
+
         while let Some(ch) = code[end..].chars().next() {
             match ch {
                 '\\' => is_esc = !is_esc,
@@ -297,6 +307,7 @@ impl Lexer {
                     if !is_esc {
                         self.cur_span =
                             Some(pos.range_to_span(id, start.saturating_sub(1), end + 1));
+                        println!("String mode finished. String text:\n{}", res);
                         return res;
                     }
                 }
@@ -314,7 +325,13 @@ impl Lexer {
         )
     }
 
-    pub fn lex_code(&mut self, id: FileId, sm: &SourceManager, posindx: &PosIndex) -> Result<Vec<Token>, Error> {
+    pub fn lex_code(
+        &mut self,
+        id: FileId,
+        sm: &SourceManager,
+        posindx: &PosIndex,
+    ) -> Result<Vec<Token>, Error> {
+        println!("File #{}, started lexer stage", id.0);
         let mut pos: usize = 0;
         let mut tokens: Vec<Token> = Vec::new();
         let code = sm.get_file_src(id);
@@ -343,7 +360,10 @@ impl Lexer {
 
             if self.is_string {
                 best_match = Some((
-                    self.rules.iter().find(|r| r.name == consts::STR_MODE).unwrap(),
+                    self.rules
+                        .iter()
+                        .find(|r| r.name == consts::STR_MODE)
+                        .unwrap(),
                     self.fictive_re.find(rem).unwrap(),
                 ))
             }
@@ -351,7 +371,7 @@ impl Lexer {
             if let Some((rule, m)) = best_match {
                 let mut m_len = m.len();
                 let m_content = &rem[..m.end()];
-                self.cur_span = Some(posindx.range_to_span(id, pos, m.end() + pos));
+                self.cur_span = Some(posindx.span_of_match(id, m));
 
                 // дальше сверка с правилами
 
@@ -366,60 +386,104 @@ impl Lexer {
                     consts::TO => tokens.push(self.gen_token(TokenType::TO, TokenVal::None)),
                     consts::STUDY => tokens.push(self.gen_token(TokenType::STUDY, TokenVal::None)),
                     consts::THE => tokens.push(self.gen_token(TokenType::THE, TokenVal::None)),
-                    consts::RITUAL => tokens.push(self.gen_token(TokenType::RITUAL, TokenVal::None)),
+                    consts::RITUAL => {
+                        tokens.push(self.gen_token(TokenType::RITUAL, TokenVal::None))
+                    }
                     consts::OF => tokens.push(self.gen_token(TokenType::OF, TokenVal::None)),
                     consts::WITH => tokens.push(self.gen_token(TokenType::WITH, TokenVal::None)),
                     consts::IS => tokens.push(self.gen_token(TokenType::IS, TokenVal::None)),
                     consts::A => tokens.push(self.gen_token(TokenType::A, TokenVal::None)),
-                    consts::PLEASURE => tokens.push(self.gen_token(TokenType::PLEASURE, TokenVal::None)),
+                    consts::PLEASURE => {
+                        tokens.push(self.gen_token(TokenType::PLEASURE, TokenVal::None))
+                    }
 
                     consts::LET => tokens.push(self.gen_token(TokenType::LET, TokenVal::None)),
                     consts::US => tokens.push(self.gen_token(TokenType::US, TokenVal::None)),
-                    consts::CONSULT => tokens.push(self.gen_token(TokenType::CONSULT, TokenVal::None)),
-                    consts::WISDOM => tokens.push(self.gen_token(TokenType::WISDOM, TokenVal::None)),
-                    consts::REGRADING => tokens.push(self.gen_token(TokenType::REGRADING, TokenVal::None)),
+                    consts::CONSULT => {
+                        tokens.push(self.gen_token(TokenType::CONSULT, TokenVal::None))
+                    }
+                    consts::WISDOM => {
+                        tokens.push(self.gen_token(TokenType::WISDOM, TokenVal::None))
+                    }
+                    consts::REGRADING => {
+                        tokens.push(self.gen_token(TokenType::REGRADING, TokenVal::None))
+                    }
 
-                    consts::BEGINNING => tokens.push(self.gen_token(TokenType::BEGINNING, TokenVal::None)),
-                    consts::DEFINITION => tokens.push(self.gen_token(TokenType::DEFINITION, TokenVal::None)),
+                    consts::BEGINNING => {
+                        tokens.push(self.gen_token(TokenType::BEGINNING, TokenVal::None))
+                    }
+                    consts::DEFINITION => {
+                        tokens.push(self.gen_token(TokenType::DEFINITION, TokenVal::None))
+                    }
                     consts::TERMS => tokens.push(self.gen_token(TokenType::TERMS, TokenVal::None)),
 
                     consts::HE => tokens.push(self.gen_token(TokenType::HE, TokenVal::None)),
                     consts::FIRST => tokens.push(self.gen_token(TokenType::FIRST, TokenVal::None)),
-                    consts::PRESENTS => tokens.push(self.gen_token(TokenType::PRESENTS, TokenVal::None)),
+                    consts::PRESENTS => {
+                        tokens.push(self.gen_token(TokenType::PRESENTS, TokenVal::None))
+                    }
                     consts::HIS => tokens.push(self.gen_token(TokenType::HIS, TokenVal::None)),
                     consts::WORDS => tokens.push(self.gen_token(TokenType::WORDS, TokenVal::None)),
                     consts::AS => tokens.push(self.gen_token(TokenType::AS, TokenVal::None)),
                     consts::THEN => tokens.push(self.gen_token(TokenType::THEN, TokenVal::None)),
-                    consts::ACCORDING => tokens.push(self.gen_token(TokenType::ACCORDING, TokenVal::None)),
+                    consts::ACCORDING => {
+                        tokens.push(self.gen_token(TokenType::ACCORDING, TokenVal::None))
+                    }
                     consts::THEM => tokens.push(self.gen_token(TokenType::THEM, TokenVal::None)),
                     consts::ACTS => tokens.push(self.gen_token(TokenType::ACTS, TokenVal::None)),
 
                     consts::WHO => tokens.push(self.gen_token(TokenType::WHO, TokenVal::None)),
                     consts::BY => tokens.push(self.gen_token(TokenType::BY, TokenVal::None)),
-                    consts::REANIMATING => tokens.push(self.gen_token(TokenType::REANIMATING, TokenVal::None)),
+                    consts::REANIMATING => {
+                        tokens.push(self.gen_token(TokenType::REANIMATING, TokenVal::None))
+                    }
                     consts::CAN => tokens.push(self.gen_token(TokenType::CAN, TokenVal::None)),
                     consts::GAIN => tokens.push(self.gen_token(TokenType::GAIN, TokenVal::None)),
-                    consts::KNOWLEGE => tokens.push(self.gen_token(TokenType::KNOWLEGE, TokenVal::None)),
+                    consts::KNOWLEGE => {
+                        tokens.push(self.gen_token(TokenType::KNOWLEGE, TokenVal::None))
+                    }
 
-                    consts::HARMONIZED => tokens.push(self.gen_token(TokenType::HARMONIZED, TokenVal::None)),
-                    consts::DIMINISHED => tokens.push(self.gen_token(TokenType::DIMINISHED, TokenVal::None)),
-                    consts::MULTIPLED => tokens.push(self.gen_token(TokenType::MULTIPLED, TokenVal::None)),
-                    consts::SHARED => tokens.push(self.gen_token(TokenType::SHARED, TokenVal::None)),
+                    consts::HARMONIZED => {
+                        tokens.push(self.gen_token(TokenType::HARMONIZED, TokenVal::None))
+                    }
+                    consts::DIMINISHED => {
+                        tokens.push(self.gen_token(TokenType::DIMINISHED, TokenVal::None))
+                    }
+                    consts::MULTIPLED => {
+                        tokens.push(self.gen_token(TokenType::MULTIPLED, TokenVal::None))
+                    }
+                    consts::SHARED => {
+                        tokens.push(self.gen_token(TokenType::SHARED, TokenVal::None))
+                    }
                     consts::AMONG => tokens.push(self.gen_token(TokenType::AMONG, TokenVal::None)),
-                    consts::RAISED => tokens.push(self.gen_token(TokenType::RAISED, TokenVal::None)),
+                    consts::RAISED => {
+                        tokens.push(self.gen_token(TokenType::RAISED, TokenVal::None))
+                    }
                     consts::POWER => tokens.push(self.gen_token(TokenType::POWER, TokenVal::None)),
-                    consts::PARTITIONED => tokens.push(self.gen_token(TokenType::PARTITIONED, TokenVal::None)),
-                    consts::REMAINDER => tokens.push(self.gen_token(TokenType::REMAINDER, TokenVal::None)),
+                    consts::PARTITIONED => {
+                        tokens.push(self.gen_token(TokenType::PARTITIONED, TokenVal::None))
+                    }
+                    consts::REMAINDER => {
+                        tokens.push(self.gen_token(TokenType::REMAINDER, TokenVal::None))
+                    }
 
                     consts::AND => tokens.push(self.gen_token(TokenType::AND, TokenVal::None)),
 
-                    consts::YANG => tokens.push(self.gen_token(TokenType::BOOL, TokenVal::Bool(true))),
-                    consts::YIN => tokens.push(self.gen_token(TokenType::BOOL, TokenVal::Bool(false))),
+                    consts::YANG => {
+                        tokens.push(self.gen_token(TokenType::BOOL, TokenVal::Bool(true)))
+                    }
+                    consts::YIN => {
+                        tokens.push(self.gen_token(TokenType::BOOL, TokenVal::Bool(false)))
+                    }
 
                     consts::COMMA => tokens.push(self.gen_token(TokenType::COMMA, TokenVal::None)),
                     consts::DOT => tokens.push(self.gen_token(TokenType::DOT, TokenVal::None)),
-                    consts::LBRACE => tokens.push(self.gen_token(TokenType::LBRACE, TokenVal::None)),
-                    consts::RBRACE => tokens.push(self.gen_token(TokenType::RBRACE, TokenVal::None)),
+                    consts::LBRACE => {
+                        tokens.push(self.gen_token(TokenType::LBRACE, TokenVal::None))
+                    }
+                    consts::RBRACE => {
+                        tokens.push(self.gen_token(TokenType::RBRACE, TokenVal::None))
+                    }
 
                     consts::FLOAT => {
                         let val = match m_content.parse::<f64>() {
@@ -471,7 +535,9 @@ impl Lexer {
                             }
                         }
 
-                        tokens.push(self.gen_token(TokenType::VAR, TokenVal::Var(m_content.to_string())));
+                        tokens.push(
+                            self.gen_token(TokenType::VAR, TokenVal::Var(m_content.to_string())),
+                        );
                     }
 
                     _ => unreachable!("The rule {} is not matchable", rule.name),

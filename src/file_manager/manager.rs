@@ -1,14 +1,16 @@
-use std::{
-    fs,
-    path::PathBuf,
-};
+use std::path::PathBuf;
 
 use crate::{
     consts::Colors,
     errors::{ErrHandler, enums::ErrLevel},
     file_manager::{
-        console::{self, ConsoleArg}, file::FileId, sm::SourceManager, span::PosIndex
-    }, lexer::lexer::Lexer,
+        console::{self, ConsoleArg},
+        file::FileId,
+        sm::SourceManager,
+        span::PosIndex,
+    },
+    lexer::lexer::Lexer,
+    parser::Parser,
 };
 
 pub struct FileManager {
@@ -18,7 +20,8 @@ pub struct FileManager {
     nocache: bool,
     err_h: ErrHandler,
     pos: PosIndex,
-    lex: Lexer
+    lex: Lexer,
+    parser: Parser,
 }
 
 impl FileManager {
@@ -30,12 +33,12 @@ impl FileManager {
             nocache: false,
             err_h: ErrHandler::new(),
             pos: PosIndex::new(),
-            lex: Lexer::new()
+            lex: Lexer::new(),
+            parser: Parser::new(),
         }
     }
 
     pub fn push_file(&mut self, path: PathBuf) -> FileId {
-
         let file_id = self.sm.push_file(&path);
 
         let text = self.sm.get_file_src(file_id);
@@ -48,19 +51,20 @@ impl FileManager {
     }
 
     fn exec_file(&mut self, id: FileId) {
-
         let tokens = match self.lex.lex_code(id, &self.sm, &self.pos) {
             Ok(t) => t,
-            Err(_) => unreachable!("пока что unreachable")
+            Err(_) => unreachable!("пока что"),
         };
 
-        println!("tokens:\n{:?}", tokens)
-        
+        println!("{:?}, tokens:\n{:?}", id, tokens);
+
+        println!("{:?}, started parsing.", id);
+        let ast = self.parser.parse_tokens(tokens, self.repl_mode);
+
+        println!("{:?}, AST:\n{:?}", id, ast)
     }
 
-    pub fn import_file(&self, id: FileId) {
-        
-    }
+    // pub fn import_file(&self, id: FileId) {}
 
     pub fn execute_cli(&mut self, args: Vec<String>) {
         let mut was_clg = false;
@@ -95,7 +99,7 @@ impl FileManager {
                 ConsoleArg::Help => {
                     if !was_ind_arg {
                         println!("");
-                        println!("Welcome to ConfLang help center!");
+                        println!("Welcome to ConfLang console help center!");
                         println!("Here are the commands you can use in the console:");
                         println!(
                             "\t\"{}\" - Runs a ConfLang module",
@@ -168,7 +172,7 @@ impl FileManager {
             self.exec_file(id);
         } else if !was_ind_arg {
             self.repl_mode = true;
-            println!("REPL mode was not realised yet.")
+            println!("REPL mode was not realised yet. Idite nahren")
         }
     }
 }

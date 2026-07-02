@@ -6,17 +6,8 @@ pub struct File {
     // pub name: String, // logical name, like "utils.lexer" or "main"
     pub absolute_path: PathBuf,
     pub code: Arc<str>, // content of file
-    // PosIndex in special module
+                        // PosIndex in special module
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct FileId(pub usize);

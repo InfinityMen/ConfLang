@@ -1,6 +1,10 @@
 use super::file::{File, FileId};
 use crate::consts;
-use std::{collections::HashMap, fs, path::{Path, PathBuf}};
+use std::{
+    collections::HashMap,
+    fs,
+    path::{Path, PathBuf},
+};
 
 #[derive(Debug, Clone)]
 pub struct SourceManager {

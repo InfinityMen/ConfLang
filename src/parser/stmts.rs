@@ -1,40 +1,98 @@
-use crate::lexer::structs::{Token, TokenType};
+use crate::{file_manager::span::Span, lexer::structs::TokenType};
 
 #[derive(Debug, Clone)]
-pub enum Stmt {
-    FuncDef {name: String, args: Vec<String>, body: Vec<Stmt>},
-    FuncCall {name: String, args: Vec<Stmt>},
-    Return {value: Vec<Stmt>},
-    Print{value: Vec<Stmt>},
-    Input{variable: String},
+pub enum StmtType {
+    FuncDef {
+        name: String,
+        args: Vec<String>,
+        body: Vec<StmtType>,
+    },
+    FuncCall {
+        name: String,
+        args: Vec<StmtType>,
+    },
+    Return {
+        value: Vec<StmtType>,
+    },
+    Print {
+        value: Vec<StmtType>,
+    },
+    Input {
+        variable: String,
+    },
 
-    Addition{a: Box<Stmt>, b: Box<Stmt>},
-    Subtraction {a: Box<Stmt>, b: Box<Stmt>},
-    Multiplication {a: Box<Stmt>, b: Box<Stmt>},
-    Division {a: Box<Stmt>, b: Box<Stmt>},
-    Exponentiation {a: Box<Stmt>, b: Box<Stmt>},
-    DivisionWithRemainder {a: Box<Stmt>, b: Box<Stmt>},
-    RemainderOfDivision {a: Box<Stmt>, b: Box<Stmt>},
+    Add {
+        a: Box<StmtType>,
+        b: Box<StmtType>,
+    },
+    Sub {
+        a: Box<StmtType>,
+        b: Box<StmtType>,
+    },
+    Mul {
+        a: Box<StmtType>,
+        b: Box<StmtType>,
+    },
+    Div {
+        a: Box<StmtType>,
+        b: Box<StmtType>,
+    },
+    Exp {
+        a: Box<StmtType>,
+        b: Box<StmtType>,
+    },
+    DivWithRem {
+        a: Box<StmtType>,
+        b: Box<StmtType>,
+    },
+    RemOfDiv {
+        a: Box<StmtType>,
+        b: Box<StmtType>,
+    },
 
-    Variable{name: String},
-    Integer{value: i64},
-    Float{value: f64},
-    String{value: String},
-    Boolean{value: bool}
+    Var {
+        name: String,
+    },
+    Int {
+        value: i64,
+    },
+    Float {
+        value: f64,
+    },
+    Str {
+        value: String,
+    },
+    Bool {
+        value: bool,
+    },
 }
 
+#[derive(Debug)]
+pub enum StmtContent {}
+
+#[derive(Debug)]
+pub struct Stmt {
+    pub s_type: StmtType,
+    pub content: StmtContent,
+    pub span_parts: Vec<Span>,
+}
+
+#[derive(Clone, PartialEq)]
 pub enum RuleItem {
     Token(TokenType),
     Ident,
     Expr,
-    Block,
     List {
         item: Box<RuleItem>,
         sep: TokenType,
-        last_sep: Option<TokenType>
+        last_sep: Option<TokenType>,
     },
-    Optional(Box<RuleItem>),
+    Optional(Vec<RuleItem>),
     Sequence(Vec<RuleItem>),
-    OneOF(Vec<RuleItem>),
-    Everything
+    CodeBlock,
+}
+
+pub enum RuleMatch {
+    NoMatch,
+    Match(usize),
 }

@@ -1,10 +1,7 @@
 use colored::*;
 
-
-
 pub const NEWLINE: &str = "NEWLINE";
 pub const WHITESPACE: &str = "WHITESPACE";
-
 
 // func_def
 pub const TO: &str = "TO";
@@ -17,7 +14,6 @@ pub const IS: &str = "IS";
 pub const A: &str = "A";
 pub const PLEASURE: &str = "PLEASURE";
 
-
 // func_call
 pub const LET: &str = "LET";
 pub const US: &str = "US";
@@ -25,12 +21,10 @@ pub const CONSULT: &str = "CONSULT";
 pub const WISDOM: &str = "WISDOM";
 pub const REGRADING: &str = "REGRADING";
 
-
 // return
 pub const BEGINNING: &str = "BEGINNING";
 pub const DEFINITION: &str = "DEFINITION";
 pub const TERMS: &str = "TERMS";
-
 
 // print
 pub const HE: &str = "HE";
@@ -44,7 +38,6 @@ pub const ACCORDING: &str = "ACCORDING";
 pub const THEM: &str = "THEM";
 pub const ACTS: &str = "ACTS";
 
-
 // assign
 pub const WHO: &str = "WHO";
 pub const BY: &str = "BY";
@@ -57,22 +50,19 @@ pub const KNOWLEGE: &str = "KNOWLEGE";
 pub const HARMONIZED: &str = "HARMONIZED";
 pub const DIMINISHED: &str = "DIMINISHED";
 pub const MULTIPLED: &str = "MULTIPLED";
-pub const SHARED: &str = "SHARED"; 
+pub const SHARED: &str = "SHARED";
 pub const AMONG: &str = "AMONG";
 pub const RAISED: &str = "RAISED";
 pub const POWER: &str = "POWER";
 pub const PARTITIONED: &str = "PARTITIONED";
 pub const REMAINDER: &str = "REMAINDER";
 
-
 // function word
 pub const AND: &str = "AND";
-
 
 // bool
 pub const YANG: &str = "YANG";
 pub const YIN: &str = "YIN";
-
 
 // symbols
 pub const COMMA: &str = "СOMMA";
@@ -80,23 +70,18 @@ pub const DOT: &str = "DOT";
 pub const LBRACE: &str = "LBRACE";
 pub const RBRACE: &str = "RBRACE";
 
-
 // nums
 pub const FLOAT: &str = "FLOAT";
 pub const INT: &str = "INT";
-
 
 // string
 pub const QUOTE: &str = "QUOTE";
 pub const STR_MODE: &str = "STR_MODE";
 
-
 // vars
 pub const VAR: &str = "VAR";
 
-
 pub const STR: &str = "STR";
-
 
 // parser consts
 pub const BOOL: &str = "BOOL";
@@ -108,7 +93,7 @@ pub const EXP: &str = "EXP";
 pub const DIV_WITH_REM: &str = "DIV_WITH_REM";
 pub const REM_FROM_DIV: &str = "REM_FROM_DIV";
 pub const FUNC_CALL_EXPR: &str = "FUNC_CALL_EXPR";
-
+pub const EXPR: &str = "EXPR";
 
 // module for easy use of common colors
 const FIRM_COLOR: (u8, u8, u8) = (0, 162, 255); // #00a2ff

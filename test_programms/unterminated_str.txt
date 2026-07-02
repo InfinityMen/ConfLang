@@ -1,1 +1,1 @@
-He first presents his words as "unterminated string, and then according to them he acts.
+He first presents his words as "I am unterminated string, I must end here -> \", and then according to them he acts.

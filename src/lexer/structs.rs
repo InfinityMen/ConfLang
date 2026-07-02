@@ -2,13 +2,10 @@ use crate::file_manager::span::Span;
 
 #[derive(Debug, Clone)]
 pub struct Token {
-
     pub token_type: TokenType,
     pub val: TokenVal,
-    pub span: Span
-
+    pub span: Span,
 }
-
 
 #[derive(Debug, Clone)]
 pub enum TokenVal {
@@ -17,15 +14,14 @@ pub enum TokenVal {
     Bool(bool),
     Float(f64),
     Var(String),
-    None
+    None,
 }
-
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
-
     NEWLINE,
     WHITESPACE,
+    EOF,
 
     // func_def
     TO,
@@ -89,7 +85,7 @@ pub enum TokenType {
     DOT,
     LBRACE,
     RBRACE,
-    
+
     // data
     VAR,
     INT,

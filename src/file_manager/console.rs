@@ -11,6 +11,7 @@ pub enum ConsoleArg {
     Author,
     Donate,
     NoCache,
+    
     Level(ErrLevel),
 }
 
