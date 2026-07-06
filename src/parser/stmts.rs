@@ -77,7 +77,7 @@ pub struct Stmt {
     pub span_parts: Vec<Span>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum RuleItem {
     Token(TokenType),
     Ident,
@@ -88,7 +88,6 @@ pub enum RuleItem {
         last_sep: Option<TokenType>,
     },
     Optional(Vec<RuleItem>),
-    Sequence(Vec<RuleItem>),
     CodeBlock,
 }
 

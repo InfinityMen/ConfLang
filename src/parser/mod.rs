@@ -30,7 +30,7 @@ impl Parser {
         Self {
             constr_rules: vec![
                 Rule {
-                    name: "FUNC_DEF",
+                    name: "FUNC_CALL",
                     rule_items: vec![
                         Token(TO),
                         Token(STUDY),
@@ -43,20 +43,18 @@ impl Parser {
                             List {
                                 item: Box::new(Expr),
                                 sep: COMMA,
-                                last_sep: Some(AND),
+                                last_sep: Some(WITH),
                             },
                         ]),
                         Token(IS),
                         Token(A),
                         Token(PLEASURE),
                         Token(DOT),
-                        Token(LBRACE),
                         CodeBlock,
-                        Token(RBRACE),
                     ],
                 },
                 Rule {
-                    name: "FUNC_CALL",
+                    name: "FUNC_DEF",
                     rule_items: vec![
                         Token(LET),
                         Token(US),
@@ -70,7 +68,7 @@ impl Parser {
                             List {
                                 item: Box::new(Expr),
                                 sep: COMMA,
-                                last_sep: Some(AND),
+                                last_sep: Some(WITH),
                             },
                         ]),
                         Token(DOT),
@@ -92,7 +90,7 @@ impl Parser {
                         List {
                             item: Box::new(Expr),
                             sep: COMMA,
-                            last_sep: Some(AND),
+                            last_sep: Some(WITH),
                         },
                         Token(DOT),
                     ],
@@ -109,7 +107,7 @@ impl Parser {
                         List {
                             item: Box::new(Expr),
                             sep: COMMA,
-                            last_sep: Some(AND),
+                            last_sep: Some(WITH),
                         },
                         Token(AND),
                         Token(THEN),
@@ -131,7 +129,7 @@ impl Parser {
                         List {
                             item: Box::new(Expr),
                             sep: COMMA,
-                            last_sep: Some(AND),
+                            last_sep: Some(WITH),
                         },
                         Token(CAN),
                         Token(GAIN),
@@ -140,7 +138,7 @@ impl Parser {
                         List {
                             item: Box::new(Ident),
                             sep: COMMA,
-                            last_sep: Some(AND),
+                            last_sep: Some(WITH),
                         },
                         Token(DOT),
                     ],
@@ -221,7 +219,7 @@ impl Parser {
                             List {
                                 item: Box::new(Expr),
                                 sep: COMMA,
-                                last_sep: Some(AND),
+                                last_sep: Some(WITH),
                             },
                         ]),
                     ],
@@ -295,7 +293,7 @@ impl Parser {
     fn get_accepted_tokens_list(&self, r: RuleItem) -> Vec<TokenType> {
         let mut ts = match r {
             Token(t) => vec![t],
-            Ident => vec![VAR],
+            Ident => vec![VAR, NEWLINE, WHITESPACE],
             Expr => vec![
                 VAR,
                 INT,
@@ -321,6 +319,8 @@ impl Parser {
                 REGRADING,
                 LBRACE,
                 RBRACE,
+                NEWLINE,
+                WHITESPACE,
             ],
             List {
                 item,
@@ -336,22 +336,15 @@ impl Parser {
                     ts.push(ls);
                 }
 
+                ts.extend([WHITESPACE, NEWLINE]);
+
                 ts
             }
-            Optional(s) => s.iter().map(|&st| self.get_accepted_tokens_list(st)).collect(),
-            Sequence(s) => {
-                let mut ts: Vec<TokenType> = Vec::new();
-                for r in s {
-                    ts.extend(self.get_accepted_tokens_list(r));
-                }
-                ts
-            }
+            Optional(_) => unreachable!(), // парсер будет разбирать их рекусивно
             CodeBlock => unreachable!(), // поскольку парсер будет автоматически игнорировать содержимое скобок
         };
 
-        ts.extend([NEWLINE, WHITESPACE]);
         ts
-
     }
 
     fn check_rule(&self, tokens: &Vec<Token>, rule: &Rule) -> RuleMatch {
@@ -359,8 +352,14 @@ impl Parser {
 
         for mr in &rule.rule_items {
             match self.check_item(tokens, m_len, mr) {
-                Some(l) => m_len += l,
-                None => return RuleMatch::NoMatch
+                Some(l) => {
+                    m_len += l;
+                    println!("RuleItem {:?}, match with len {}", mr, l)
+                }
+                None => {
+                    println!("RuleItem {:?}, nomatch", mr);
+                    return RuleMatch::NoMatch;
+                }
             }
         }
 
@@ -368,19 +367,41 @@ impl Parser {
     }
 
     fn check_item(&self, tokens: &Vec<Token>, pos: usize, item: &RuleItem) -> Option<usize> {
+        let check_scope = &tokens[pos..].to_vec();
+
+        if check_scope.is_empty() {
+            return None;
+        }
+
         match item {
             Token(tt) => {
-                let tok = tokens.get(pos)?;
+                let mut consumed = 0;
 
-                if tok.token_type == *tt { Some(1) } else { None }
+                while let Some(tok) = check_scope.get(consumed) {
+                    match tok.token_type {
+                        WHITESPACE | NEWLINE => {
+                            consumed += 1;
+                        }
+
+                        _ => {
+                            if tok.token_type == *tt {
+                                return Some(consumed + 1);
+                            } else {
+                                return None;
+                            }
+                        }
+                    }
+                }
+
+                None
             }
 
-            Ident | Expr => {
+            Ident | Expr | List { .. } => {
                 let accepted = self.get_accepted_tokens_list(item.clone());
 
                 let mut len = 0;
 
-                while let Some(tok) = tokens.get(pos + len) {
+                while let Some(tok) = check_scope.get(len) {
                     if accepted.contains(&tok.token_type) {
                         len += 1;
                     } else {
@@ -391,55 +412,34 @@ impl Parser {
                 if len > 0 { Some(len) } else { None }
             }
 
-            Optional(inner) => Some(self.check_item(tokens, pos, inner).unwrap_or(0)),
+            Optional(inner) => {
+                let mut pos: usize = 0;
 
-            Sequence(items) => {
-                let mut consumed = 0;
-
-                for item in items {
-                    let len = self.check_item(tokens, pos + consumed, item)?;
-
-                    consumed += len;
-                }
-
-                Some(consumed)
-            }
-
-            List {
-                item,
-                sep,
-                last_sep,
-            } => {
-                let mut consumed = 0;
-
-                let first = self.check_item(tokens, pos, item)?;
-
-                consumed += first;
-
-                loop {
-                    let Some(tok) = tokens.get(pos + consumed) else {
-                        break;
-                    };
-
-                    if tok.token_type == *sep
-                        || last_sep.as_ref().is_some_and(|ls| *ls == tok.token_type)
-                    {
-                        consumed += 1;
-
-                        let len = self.check_item(tokens, pos + consumed, item)?;
-
-                        consumed += len;
+                for in_item in inner {
+                    if let Some(ml) = self.check_item(check_scope, pos, in_item) {
+                        pos += ml
                     } else {
-                        break;
+                        return Some(0);
                     }
                 }
 
-                Some(consumed)
+                Some(pos)
             }
 
             CodeBlock => {
                 let mut depth = 0;
                 let mut consumed = 0;
+
+                while let Some(tok) = check_scope.get(consumed) {
+                    match tok.token_type {
+                        WHITESPACE | NEWLINE => consumed += 1,
+                        _ => break,
+                    }
+                }
+
+                if !(check_scope.get(consumed).unwrap().token_type == LBRACE) {
+                    return None;
+                }
 
                 while let Some(tok) = tokens.get(pos + consumed) {
                     match tok.token_type {
