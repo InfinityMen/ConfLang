@@ -1,7 +1,7 @@
 use super::structs::{Token, TokenType};
 use crate::{
     consts::{self},
-    errors::{ErrHandler, Error},
+    errors::Error,
     file_manager::{
         file::FileId,
         sm::SourceManager,
