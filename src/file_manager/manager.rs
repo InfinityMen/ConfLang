@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use crate::{
-    consts::Colors,
+    consts::{self, Colors},
     errors::{ErrHandler, enums::ErrLevel},
     file_manager::{
         console::{self, ConsoleArg},
@@ -28,7 +28,7 @@ impl FileManager {
     pub fn new() -> Self {
         Self {
             sm: SourceManager::new(),
-            err_level: ErrLevel::Warning,
+            err_level: ErrLevel::Error,
             repl_mode: false,
             nocache: false,
             err_h: ErrHandler::new(),
@@ -116,8 +116,12 @@ impl FileManager {
                             "clg [ -debug | -warn | -err ] <other args>".firm_color()
                         );
                         println!(
-                            "\t\"{}\" - Shows authors and unlicense information",
-                            "clg -authors".firm_color()
+                            "\t\"{}\" - Shows unlicense information",
+                            "clg -license".firm_color()
+                        );
+                        println!(
+                            "\t\"{}\" - Shows credits",
+                            "clg -credits".firm_color()
                         );
                         println!("{}", "\t\"clg -donate\" - Support us :)".grey());
                         println!("");
@@ -127,9 +131,17 @@ impl FileManager {
                         panic!("Inderpendent arguments were declared in console more than 1 time.")
                     }
                 }
-                ConsoleArg::Author => {
+                ConsoleArg::Credits => {
                     if !was_ind_arg {
-                        println!("Text about the authors was not wrinted yet!");
+                        println!("Credits text was not writed yet");
+                        was_ind_arg = true
+                    } else {
+                        panic!("Inderpendent arguments were declared in console more than 1 time.")
+                    }
+                }
+                ConsoleArg::License => {
+                    if !was_ind_arg {
+                        println!("{}", consts::UNLICENSE_TEXT);
                         was_ind_arg = true
                     } else {
                         panic!("Inderpendent arguments were declared in console more than 1 time.")
@@ -142,6 +154,18 @@ impl FileManager {
                             "Thank you very much for wanting to support us. Our project is in the public domain, so we would be very grateful for your support. The link is below."
                         );
                         println!("{}", "https://boosty.to".firm_color());
+                        println!("");
+                        was_ind_arg = true
+                    } else {
+                        panic!("Inderpendent arguments were declared in console more than 1 time.")
+                    }
+                }
+                ConsoleArg::About => {
+                    if !was_ind_arg {
+                        println!("");
+                        println!(
+                            "{}, ver. {}.", "ConfLang".firm_color(), consts::CUR_VER);
+                        println!("For more information please type {}, {}, and {}.", "clg -help".firm_color(), "clg -license".firm_color(), "clg -authors".firm_color());
                         println!("");
                         was_ind_arg = true
                     } else {
@@ -172,7 +196,7 @@ impl FileManager {
             self.exec_file(id);
         } else if !was_ind_arg {
             self.repl_mode = true;
-            println!("REPL mode was not realised yet. Idite nahren")
+            println!("REPL mode was not realised yet :(")
         }
     }
 }

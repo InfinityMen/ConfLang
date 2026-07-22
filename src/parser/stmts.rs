@@ -94,4 +94,5 @@ pub enum RuleItem {
 pub enum RuleMatch {
     NoMatch(usize, RuleItem, TokenType),
     Match(usize),
+    CreateAST(Stmt, usize)
 }

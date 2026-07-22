@@ -22,7 +22,8 @@ struct Rule {
 
 pub struct Parser {
     constr_rules: Vec<Rule>,
-    expr_rules: Vec<Rule>,
+    operators: Vec<Rule>,
+    operands: Vec<Rule>,
     repl_rule: Rule,
 }
 
@@ -145,27 +146,7 @@ impl Parser {
                     ],
                 },
             ],
-            expr_rules: vec![
-                Rule {
-                    name: consts::INT,
-                    rule_items: vec![Token(INT)],
-                },
-                Rule {
-                    name: consts::FLOAT,
-                    rule_items: vec![Token(FLOAT)],
-                },
-                Rule {
-                    name: consts::STR,
-                    rule_items: vec![Token(STR)],
-                },
-                Rule {
-                    name: consts::BOOL,
-                    rule_items: vec![Token(BOOL)],
-                },
-                Rule {
-                    name: consts::VAR,
-                    rule_items: vec![Token(VAR)],
-                },
+            operators: vec![
                 Rule {
                     name: consts::ADD,
                     rule_items: vec![Expr, Token(HARMONIZED), Token(WITH), Expr],
@@ -209,20 +190,40 @@ impl Parser {
                         Expr,
                     ],
                 },
+            ],
+            operands: vec![
+                Rule {
+                    name: consts::INT,
+                    rule_items: vec![Token(INT)],
+                },
+                Rule {
+                    name: consts::FLOAT,
+                    rule_items: vec![Token(FLOAT)],
+                },
+                Rule {
+                    name: consts::STR,
+                    rule_items: vec![Token(STR)],
+                },
+                Rule {
+                    name: consts::BOOL,
+                    rule_items: vec![Token(BOOL)],
+                },
+                Rule {
+                    name: consts::VAR,
+                    rule_items: vec![Token(VAR)],
+                },
                 Rule {
                     name: consts::FUNC_CALL_EXPR,
                     rule_items: vec![
                         Token(WISDOM),
                         Token(OF),
                         Ident,
-                        Optional(vec![
-                            Token(REGRADING),
-                            List {
-                                item: Box::new(Expr),
-                                sep: COMMA,
-                                last_sep: Some(WITH),
-                            },
-                        ]),
+                        Token(REGRADING),
+                        List {
+                            item: Box::new(Expr),
+                            sep: COMMA,
+                            last_sep: Some(WITH),
+                        },
                     ],
                 },
             ],
@@ -254,7 +255,10 @@ impl Parser {
                 // выбор подходящего правила (с самым длинным совпадением)
                 match self.check_rule(&rem, &r) {
                     RuleMatch::NoMatch(max_l, expected, found) => {
-                        println!("rule: {:?}, NoMatch. Max matched len {}, expected {:?}, found {:?}", r, max_l, expected, found);
+                        println!(
+                            "rule: {:?}, NoMatch. Max matched len {}, expected {:?}, found {:?}",
+                            r, max_l, expected, found
+                        );
                     }
                     RuleMatch::Match(ml) => {
                         println!("rule: {}, Match with len {}.", r.name, ml);
@@ -279,7 +283,7 @@ impl Parser {
                 //     _ => todo!(),
                 // }
                 println!(
-                    "Matched rule {}, length:{} tokens. Moving pos at {}, tokens.",
+                    "Matched rule {}, length:{} tokens. Moving pos at {} tokens.",
                     m.0.name, m.1, m.1
                 );
                 pos += m.1;
@@ -289,6 +293,22 @@ impl Parser {
         }
 
         return ast;
+    }
+
+    fn parse_expression(&self, tokens: &Vec<Token>, pos: usize) {
+        let mut parse_scope = &tokens[pos..];
+        let mut is_operator_expected = false;
+        let mut cur_operator_pos: Option<[usize; 2]> = None;
+        let mut best_operator: Option<String> = None;
+
+        while !parse_scope.is_empty() {
+            if is_operator_expected {
+            } else {
+                for r in self.operands.clone() {
+                    
+                }
+            }
+        }
     }
 
     fn get_accepted_tokens_list(&self, r: RuleItem) -> Vec<TokenType> {
@@ -322,6 +342,7 @@ impl Parser {
                 RBRACE,
                 NEWLINE,
                 WHITESPACE,
+                WITH
             ],
             List {
                 item,
@@ -342,7 +363,7 @@ impl Parser {
                 ts
             }
             Optional(_) => unreachable!(), // парсер будет разбирать их рекусивно
-            CodeBlock => unreachable!(), // поскольку парсер будет автоматически игнорировать содержимое скобок
+            CodeBlock => unreachable!(), // парсер будет автоматически игнорировать содержимое скобок
         };
 
         ts
@@ -358,7 +379,10 @@ impl Parser {
                     println!("RuleItem {:?}, match with len {}", mr, l)
                 }
                 RuleMatch::NoMatch(max_l, expected, found) => {
-                    println!("RuleItem {:?}, nomatch. Max matched len {}, expected {:?}, found {:?}", mr, max_l, expected, found);
+                    println!(
+                        "RuleItem {:?}, nomatch. Max matched len {}, expected {:?}, found {:?}",
+                        mr, max_l, expected, found
+                    );
                     return RuleMatch::NoMatch(max_l, expected, found);
                 }
             }
@@ -411,7 +435,11 @@ impl Parser {
                 if micr_len != 0 {
                     micr_len
                 } else {
-                    return NoMatch(m_len + micr_len, item.clone(), check_scope.get(m_len).unwrap().token_type.clone());
+                    return NoMatch(
+                        m_len + micr_len,
+                        item.clone(),
+                        check_scope.get(m_len).unwrap().token_type.clone(),
+                    );
                 }
             }
             Optional(inner) => {
@@ -445,14 +473,13 @@ impl Parser {
                             }
 
                             depth -= 1;
-                            
 
                             if depth == 0 {
                                 micr_len += 1;
                                 break;
                             }
                         }
-                         _ => {}
+                        _ => {}
                     }
                     micr_len += 1;
                 }

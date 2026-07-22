@@ -8,8 +8,10 @@ pub enum ConsoleArg {
     Clg,
     File(PathBuf),
     Help,
-    Author,
+    Credits,
+    License,
     Donate,
+    About,
     NoCache,
     
     Level(ErrLevel),
@@ -33,7 +35,9 @@ impl ConsoleParser {
         let console_args: Vec<Rule> = vec![
             Rule {name: "CLG", re: Regex::new(r"^clg$").unwrap()},
             Rule {name: "HELP", re: Regex::new(r"^-help$").unwrap()},
-            Rule {name: "AUTHOR", re: Regex::new(r"^-authors$").unwrap()},
+            Rule {name: "CREDITS", re: Regex::new(r"^-credits$").unwrap()},
+            Rule {name: "LICENSE", re: Regex::new(r"^-license$").unwrap()},
+            Rule {name: "ABOUT", re: Regex::new(r"^-about$").unwrap()},
             Rule {name: "DONATE", re: Regex::new(r"^-donate$").unwrap()},
             Rule {name: "NO_CACHE", re: Regex::new(r"^-nocache$").unwrap()},
             Rule {name: "DEBUG", re: Regex::new(r"^-debug$").unwrap()},
@@ -80,8 +84,10 @@ impl ConsoleParser {
                     }
 
                     "HELP" => res.push(ConsoleArg::Help),
-                    "AUTHOR" => res.push(ConsoleArg::Author),
+                    "CREDITS" => res.push(ConsoleArg::Credits),
+                    "LICENSE" => res.push(ConsoleArg::License),
                     "DONATE" => res.push(ConsoleArg::Donate),
+                    "ABOUT" => res.push(ConsoleArg::About),
                     "NO_CACHE" => res.push(ConsoleArg::NoCache),
                     "DEBUG" => res.push(ConsoleArg::Level(ErrLevel::Debug)),
                     "WARNING" => res.push(ConsoleArg::Level(ErrLevel::Warning)),
