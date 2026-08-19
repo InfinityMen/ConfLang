@@ -1,12 +1,15 @@
+use core::panic;
+use std::{todo, unreachable, vec};
+
 use crate::{
-    lexer::structs::{
-        Token,
-        TokenType::{self, *},
+    file_manager::{
+        file::FileId,
+        span::{self, PosIndex, Span},
     },
+    lexer::structs::{Token, TokenType::*, TokenVal},
     parser::stmts::{
         RuleItem::{self, *},
-        RuleMatch::{self, NoMatch},
-        Stmt,
+        RuleMatch, Stmt, StmtContent, StmtType,
     },
 };
 
@@ -235,7 +238,26 @@ impl Parser {
         }
     }
 
-    pub fn parse_tokens(&self, tokens: Vec<Token>, repl_mode: bool) -> Vec<Stmt> {
+    fn gen_stmt(&self, span: Span, content: StmtContent) -> Stmt {
+        let stmt_type: StmtType = match content {
+            StmtContent::Var { .. } => StmtType::Var,
+            _ => todo!(),
+        };
+
+        return Stmt {
+            s_type: stmt_type,
+            content,
+            span: span,
+        };
+    }
+
+    pub fn parse_tokens(
+        &self,
+        id: FileId,
+        posindx: &PosIndex,
+        tokens: Vec<Token>,
+        repl_mode: bool,
+    ) -> Vec<Stmt> {
         let mut p_rules = self.constr_rules.clone();
         let mut rem: Vec<Token>;
         let mut ast: Vec<Stmt> = Vec::new();
@@ -253,7 +275,7 @@ impl Parser {
 
             for r in &p_rules {
                 // выбор подходящего правила (с самым длинным совпадением)
-                match self.check_rule(&rem, &r) {
+                match self.parse_rule(&rem, &r, false, id, posindx.clone()) {
                     RuleMatch::NoMatch(max_l, expected, found) => {
                         println!(
                             "rule: {:?}, NoMatch. Max matched len {}, expected {:?}, found {:?}",
@@ -275,6 +297,7 @@ impl Parser {
                             best_rule = Some((r.clone(), ml))
                         }
                     }
+                    RuleMatch::CreateAST(_, _) => unreachable!(),
                 }
             }
 
@@ -304,86 +327,70 @@ impl Parser {
         while !parse_scope.is_empty() {
             if is_operator_expected {
             } else {
-                for r in self.operands.clone() {
-                    
-                }
+                for r in self.operands.clone() {}
             }
         }
     }
 
-    fn get_accepted_tokens_list(&self, r: RuleItem) -> Vec<TokenType> {
-        let ts = match r {
-            Token(t) => vec![t],
-            Ident => vec![VAR, NEWLINE, WHITESPACE],
-            Expr => vec![
-                VAR,
-                INT,
-                FLOAT,
-                STR,
-                BOOL,
-                HARMONIZED,
-                WITH,
-                DIMINISHED,
-                BY,
-                MULTIPLED,
-                SHARED,
-                AMONG,
-                RAISED,
-                TO,
-                THE,
-                POWER,
-                OF,
-                PARTITIONED,
-                A,
-                REMAINDER,
-                WISDOM,
-                REGRADING,
-                LBRACE,
-                RBRACE,
-                NEWLINE,
-                WHITESPACE,
-                WITH
-            ],
-            List {
-                item,
-                sep,
-                last_sep,
-            } => {
-                let mut ts: Vec<TokenType> = Vec::new();
-
-                ts.extend(self.get_accepted_tokens_list(item.as_ref().clone()));
-                ts.push(sep);
-
-                if let Some(ls) = last_sep {
-                    ts.push(ls);
-                }
-
-                ts.extend([WHITESPACE, NEWLINE]);
-
-                ts
-            }
-            Optional(_) => unreachable!(), // парсер будет разбирать их рекусивно
-            CodeBlock => unreachable!(), // парсер будет автоматически игнорировать содержимое скобок
-        };
-
-        ts
-    }
-
-    fn check_rule(&self, tokens: &Vec<Token>, rule: &Rule) -> RuleMatch {
+    fn parse_rule(
+        &self,
+        tokens: &Vec<Token>,
+        rule: &Rule,
+        build_ast: bool,
+        id: FileId,
+        posindx: PosIndex,
+    ) -> RuleMatch {
         let mut m_len: usize = 0;
+        let mut check_scope = &tokens[m_len..];
 
-        for mr in &rule.rule_items {
-            match self.check_item(tokens, m_len, mr) {
-                RuleMatch::Match(l) => {
-                    m_len += l;
-                    println!("RuleItem {:?}, match with len {}", mr, l)
+        for ri in &rule.rule_items {
+            while let Some(tok) = check_scope.get(m_len) {
+                match tok.token_type {
+                    WHITESPACE | NEWLINE => {
+                        m_len += 1;
+                    }
+                    _ => break,
                 }
-                RuleMatch::NoMatch(max_l, expected, found) => {
-                    println!(
-                        "RuleItem {:?}, nomatch. Max matched len {}, expected {:?}, found {:?}",
-                        mr, max_l, expected, found
-                    );
-                    return RuleMatch::NoMatch(max_l, expected, found);
+            }
+
+            m_len += match ri {
+                Token(tt) => {
+                    if check_scope.get(m_len).unwrap().token_type == *tt {
+                        1
+                    } else {
+                        return RuleMatch::NoMatch(
+                            m_len,
+                            ri.clone(),
+                            check_scope.get(m_len).unwrap().token_type.clone(),
+                        );
+                    }
+                }
+                Ident => {
+                    match self.parse_ident(&check_scope.to_vec(), m_len, build_ast, id, &posindx) {
+                        RuleMatch::Match(ml) => ml,
+                        RuleMatch::NoMatch(ml, exp, found) => {
+                            return RuleMatch::NoMatch(m_len + ml, exp, found);
+                        }
+                        _ => unreachable!(),
+                    }
+                }
+                CodeBlock => match self.parse_codeblock(&check_scope.to_vec(), m_len, id, &posindx)
+                {
+                    RuleMatch::Match(ml) => ml,
+                    RuleMatch::NoMatch(ml, exp, found) => {
+                        return RuleMatch::NoMatch(m_len + ml, exp, found);
+                    }
+                    _ => unreachable!(),
+                },
+                _ => todo!(),
+            };
+
+            while let Some(tok) = check_scope.get(m_len) {
+                match tok.token_type {
+                    WHITESPACE | NEWLINE => {
+                        m_len += 1;
+                    }
+                    _ => break,
                 }
             }
         }
@@ -391,111 +398,197 @@ impl Parser {
         RuleMatch::Match(m_len)
     }
 
-    fn check_item(&self, tokens: &Vec<Token>, pos: usize, item: &RuleItem) -> RuleMatch {
-        let check_scope = &tokens[pos..].to_vec();
-
-        if check_scope.is_empty() {
-            return RuleMatch::NoMatch(0, item.clone(), EOF);
-        }
-
+    fn match_ruleitem(
+        &self,
+        ri: RuleItem,
+        tokens: &[Token],
+        pos: usize,
+        id: FileId,
+        posindx: &PosIndex,
+        build_ast: bool,
+    ) -> RuleMatch {
         let mut m_len: usize = 0;
+        let mut check_scope = &tokens[m_len..];
 
-        while let Some(tok) = check_scope.get(m_len) {
-            match tok.token_type {
-                WHITESPACE | NEWLINE => {
-                    m_len += 1;
+        match ri {
+                Token(ref tt) => {
+                    if check_scope.get(m_len).unwrap().token_type == *tt {
+                        1
+                    } else {
+                        return RuleMatch::NoMatch(
+                            m_len,
+                            ri.clone(),
+                            check_scope.get(m_len).unwrap().token_type.clone(),
+                        );
+                    }
                 }
-                _ => break,
-            }
+                Ident => {
+                    match self.parse_ident(&check_scope.to_vec(), m_len, build_ast, id, &posindx) {
+                        RuleMatch::Match(ml) => ml,
+                        RuleMatch::NoMatch(ml, exp, found) => {
+                            return RuleMatch::NoMatch(m_len + ml, exp, found);
+                        }
+                        _ => unreachable!(),
+                    }
+                }
+                CodeBlock => match self.parse_codeblock(&check_scope.to_vec(), m_len, id, &posindx)
+                {
+                    RuleMatch::Match(ml) => ml,
+                    RuleMatch::NoMatch(ml, exp, found) => {
+                        return RuleMatch::NoMatch(m_len + ml, exp, found);
+                    }
+                    _ => unreachable!(),
+                },
+                _ => todo!(),
+            };
+
+            unreachable!()
+
+    }
+
+    fn parse_codeblock(
+        &self,
+        tokens: &Vec<Token>,
+        pos: usize,
+        id: FileId,
+        posindx: &PosIndex,
+    ) -> RuleMatch {
+        let parse_scope = &tokens[pos..];
+        let mut len: usize = 0;
+        let mut depth: u16 = 0;
+
+        if parse_scope.first().unwrap().token_type != LBRACE {
+            return RuleMatch::NoMatch(
+                len,
+                CodeBlock,
+                parse_scope.first().unwrap().token_type.clone(),
+            );
         }
 
-        m_len += match item {
-            Token(tt) => {
-                if check_scope.get(m_len).unwrap().token_type == *tt {
-                    1
-                } else {
-                    return RuleMatch::NoMatch(
-                        m_len,
-                        item.clone(),
-                        check_scope.get(m_len).unwrap().token_type.clone(),
-                    );
-                }
-            }
-            Ident | Expr | List { .. } => {
-                let accepted = self.get_accepted_tokens_list(item.clone());
-                let mut micr_len: usize = 0;
-
-                while let Some(tok) = check_scope.get(micr_len) {
-                    if accepted.contains(&tok.token_type) {
-                        micr_len += 1;
-                    } else {
+        while let Some(t) = parse_scope.get(len) {
+            match t.token_type {
+                LBRACE => depth += 1,
+                RBRACE => {
+                    depth -= 1;
+                    if depth == 0 {
+                        len += 1;
                         break;
                     }
                 }
-                if micr_len != 0 {
-                    micr_len
-                } else {
-                    return NoMatch(
-                        m_len + micr_len,
-                        item.clone(),
-                        check_scope.get(m_len).unwrap().token_type.clone(),
-                    );
-                }
+                _ => {}
             }
-            Optional(inner) => {
-                let mut micr_len: usize = 0;
 
-                for in_item in inner {
-                    match self.check_item(check_scope, micr_len, in_item) {
-                        RuleMatch::Match(l) => micr_len += l,
-                        NoMatch(..) => {
-                            micr_len = 0;
-                            break;
-                        }
-                    }
-                }
-                micr_len
-            }
-            CodeBlock => {
-                let mut depth: usize = 0;
-                let mut micr_len: usize = 0;
-
-                if check_scope.get(m_len).unwrap().token_type != LBRACE {
-                    return RuleMatch::NoMatch(m_len, item.clone(), LBRACE);
-                }
-
-                while let Some(tok) = check_scope.get(micr_len) {
-                    match tok.token_type {
-                        LBRACE => depth += 1,
-                        RBRACE => {
-                            if depth == 0 {
-                                break;
-                            }
-
-                            depth -= 1;
-
-                            if depth == 0 {
-                                micr_len += 1;
-                                break;
-                            }
-                        }
-                        _ => {}
-                    }
-                    micr_len += 1;
-                }
-                micr_len
-            }
-        };
-
-        while let Some(tok) = check_scope.get(m_len) {
-            match tok.token_type {
-                WHITESPACE | NEWLINE => {
-                    m_len += 1;
-                }
-                _ => break,
-            }
+            len += 1;
         }
 
-        RuleMatch::Match(m_len)
+        return RuleMatch::Match(len);
     }
+
+    fn parse_ident(
+        &self,
+        tokens: &Vec<Token>,
+        pos: usize,
+        build_ast: bool,
+        id: FileId,
+        posindx: &PosIndex,
+    ) -> RuleMatch {
+        let parse_scope = &tokens[pos..];
+        let mut m_len: usize = 0;
+        // был ли педыдущий токен токеном переменной
+        let mut was_var_token_prev = false;
+        // были ли токены OF или FROM (нужно для проверки уместности использования токена FROM)
+        let mut were_sense_tokens = false;
+        // нужно для хранения пути файла при build_ast = true
+        let mut ident_path: Vec<String> = vec![];
+
+        while let Some(t) = parse_scope.get(m_len) {
+            match t.token_type {
+                VAR => {
+                    if was_var_token_prev {
+                        return RuleMatch::NoMatch(m_len, Ident, t.token_type.clone());
+                    };
+                    was_var_token_prev = true;
+                    if build_ast {
+                        match &t.val {
+                            TokenVal::Var(v) => ident_path.push(v.to_string()),
+                            _ => unreachable!(),
+                        }
+                    }
+                }
+                OF => {
+                    if was_var_token_prev || were_sense_tokens {
+                        return RuleMatch::NoMatch(m_len, Ident, t.token_type.clone());
+                    }
+                    was_var_token_prev = false;
+                    were_sense_tokens = true
+                }
+                FROM => {
+                    if was_var_token_prev {
+                        return RuleMatch::NoMatch(m_len, Ident, t.token_type.clone());
+                    }
+                    was_var_token_prev = false;
+                    were_sense_tokens = true
+                }
+                WHITESPACE | NEWLINE => {}
+                _ => {
+                    if !was_var_token_prev {
+                        return RuleMatch::NoMatch(m_len, Ident, t.token_type.clone());
+                    }
+                    if build_ast {
+                        return RuleMatch::CreateAST(
+                            self.gen_stmt(
+                                posindx.span_of_tokens(id, &parse_scope[m_len..]),
+                                StmtContent::Var { name: ident_path },
+                            ),
+                            m_len,
+                        );
+                    }
+                    return RuleMatch::Match(m_len);
+                }
+            }
+            m_len += 1;
+        }
+        unreachable!()
+    }
+
+    // match item {
+    //     Ident | Expr | List { .. } => {
+    //         let accepted = self.get_accepted_tokens_list(item.clone());
+    //         let mut micr_len: usize = 0;
+
+    //         while let Some(tok) = check_scope.get(micr_len) {
+    //             if accepted.contains(&tok.token_type) {
+    //                 micr_len += 1;
+    //             } else {
+    //                 break;
+    //             }
+    //         }
+    //         if micr_len != 0 {
+    //             micr_len
+    //         } else {
+    //             return RuleMatch::NoMatch(
+    //                 m_len + micr_len,
+    //                 item.clone(),
+    //                 check_scope.get(m_len).unwrap().token_type.clone(),
+    //             );
+    //         }
+    //     }
+    //     Optional(inner) => {
+    //         let mut micr_len: usize = 0;
+
+    //         for in_item in inner {
+    //             match self.check_item(check_scope, micr_len, in_item) {
+    //                 RuleMatch::Match(l) => micr_len += l,
+    //                 RuleMatch::NoMatch(..) => {
+    //                     micr_len = 0;
+    //                     break;
+    //                 }
+    //             }
+    //         }
+    //         micr_len
+    //     }
+    // };
+
+    // RuleMatch::Match(m_len)
+    // }
 }

@@ -78,6 +78,7 @@ pub enum TokenType {
     REMAINDER,
 
     // function words
+    FROM,
     AND,
 
     // chars

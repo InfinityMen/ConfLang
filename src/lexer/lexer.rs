@@ -1,13 +1,16 @@
 use super::structs::{Token, TokenType};
 use crate::{
-    consts::{self},
+    consts,
     errors::Error,
     file_manager::{
         file::FileId,
         sm::SourceManager,
         span::{PosIndex, Span},
     },
-    lexer::structs::{TokenType::NEWLINE, TokenVal},
+    lexer::structs::{
+        TokenType::{EOF, NEWLINE},
+        TokenVal,
+    },
 };
 use core::f64;
 use regex::{Match, Regex};
@@ -219,6 +222,10 @@ impl Lexer {
                     name: consts::AND,
                     re: Regex::new(r"(?i)^and\b").unwrap(),
                 },
+                Rule {
+                    name: consts::FROM,
+                    re: Regex::new(r"(?i)^from\b").unwrap(),
+                },
                 // --- bool ---
                 Rule {
                     name: consts::YANG,
@@ -371,7 +378,7 @@ impl Lexer {
             if let Some((rule, m)) = best_match {
                 let mut m_len = m.len();
                 let m_content = &rem[..m.end()];
-                self.cur_span = Some(posindx.span_of_match(id, m));
+                self.cur_span = Some(posindx.span_of_match(id, m, pos));
 
                 // дальше сверка с правилами
 
@@ -468,6 +475,7 @@ impl Lexer {
                     }
 
                     consts::AND => tokens.push(self.gen_token(TokenType::AND, TokenVal::None)),
+                    consts::FROM => tokens.push(self.gen_token(TokenType::FROM, TokenVal::None)),
 
                     consts::YANG => {
                         tokens.push(self.gen_token(TokenType::BOOL, TokenVal::Bool(true)))
@@ -553,6 +561,15 @@ impl Lexer {
         self.is_opened_id = false;
         self.is_string = false;
 
+        tokens.push(Token {
+            token_type: TokenType::EOF,
+            val: TokenVal::None,
+            span: Span {
+                file_id: id,
+                start_offset: pos,
+                end_offset: pos,
+            },
+        });
         Ok(tokens)
     }
 }

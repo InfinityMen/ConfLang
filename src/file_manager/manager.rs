@@ -59,7 +59,7 @@ impl FileManager {
         println!("{:?}, tokens:\n{:?}", id, tokens);
 
         println!("{:?}, started parsing.", id);
-        let ast = self.parser.parse_tokens(tokens, self.repl_mode);
+        let ast = self.parser.parse_tokens(id, &self.pos, tokens, self.repl_mode);
 
         println!("{:?}, AST:\n{:?}", id, ast)
     }

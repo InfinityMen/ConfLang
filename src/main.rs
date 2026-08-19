@@ -3,6 +3,7 @@ mod errors;
 mod file_manager;
 mod lexer;
 mod parser;
+mod vm;
 
 use colored::*;
 use std::env;

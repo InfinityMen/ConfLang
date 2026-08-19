@@ -57,8 +57,9 @@ pub const POWER: &str = "POWER";
 pub const PARTITIONED: &str = "PARTITIONED";
 pub const REMAINDER: &str = "REMAINDER";
 
-// function word
-pub const AND: &str = "AND";
+// functional words
+pub const AND: &str = "AND"; // list terminator
+pub const FROM: &str = "FROM"; // uses in paths to modules
 
 // bool
 pub const YANG: &str = "YANG";

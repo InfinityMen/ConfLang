@@ -2,27 +2,20 @@ use std::collections::HashMap;
 
 use regex::{Captures, Match};
 
-use crate::file_manager::file::FileId;
+use crate::{file_manager::file::FileId, lexer::structs::Token};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Span {
     pub file_id: FileId,
 
-    // all in bytes
-    pub start_line: usize,   // 1 - based
-    pub start_col: usize,    // 1 - based
-    pub start_offset: usize, // 0 - based
-
-    pub end_line: usize,   // 1 - based
-    pub end_col: usize,    // 1 - based
-    pub end_offset: usize, // 0 - based
-
-    pub byte_len: usize,
+    // all in 0 - based bytes
+    pub start_offset: usize,
+    pub end_offset: usize,
 }
 
 impl Span {
     pub fn char_len(&self, src: &str, start_ofset: usize) -> usize {
-        src[start_ofset..start_ofset + self.byte_len]
+        src[start_ofset..start_ofset + self.end_offset - self.start_offset]
             .chars()
             .count()
     }
@@ -80,32 +73,25 @@ impl PosIndex {
     }
 
     pub fn range_to_span(&self, file_id: FileId, start: usize, end: usize) -> Span {
-        let (start_line, start_col) = self.byte_to_line_col(file_id, start);
-
-        let (end_line, end_col) = self.byte_to_line_col(file_id, end);
-
         Span {
             file_id,
-            start_line,
-            start_col,
             start_offset: start,
-            end_line,
-            end_col,
             end_offset: end,
-            byte_len: end - start,
         }
     }
 
-    pub fn span_of_match(&self, file_id: FileId, m: Match) -> Span {
-        self.range_to_span(file_id, m.start(), m.end())
+    pub fn span_of_match(&self, file_id: FileId, m: Match, cur_pos: usize) -> Span {
+        self.range_to_span(file_id, cur_pos, m.end() + cur_pos)
     }
 
-    pub fn span_of_caps(&self, file_id: FileId, caps: Captures) -> Span {
-        let m = caps.get(0).expect("caps[0] not found");
-        self.span_of_match(file_id, m)
-    }
+    pub fn span_of_tokens(&self, file_id: FileId, tokens: &[Token]) -> Span {
+        let mut start = tokens[0].span.start_offset;
+        let mut end = tokens[tokens.len()].span.end_offset;
 
-    pub fn span_of_group(&self, file_id: FileId, caps: Captures, name: &str) -> Option<Span> {
-        caps.name(name).map(|m| self.span_of_match(file_id, m))
+        return Span {
+            file_id,
+            start_offset: start,
+            end_offset: end,
+        };
     }
 }

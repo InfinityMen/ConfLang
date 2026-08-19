@@ -2,56 +2,79 @@ use crate::{file_manager::span::Span, lexer::structs::TokenType};
 
 #[derive(Debug, Clone)]
 pub enum StmtType {
+    FuncDef,
+    FuncCall,
+    Return,
+    Print,
+    // Input,
+
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Exp,
+    DivWithRem,
+    RemOfDiv,
+
+    Var,
+    Int,
+    Float,
+    Str,
+    Bool
+}
+
+#[derive(Debug)]
+pub enum StmtContent {
     FuncDef {
-        name: String,
-        args: Vec<String>,
-        body: Vec<StmtType>,
+        name: Box<Stmt>,
+        args: Vec<Stmt>,
+        body: Vec<Stmt>,
     },
     FuncCall {
-        name: String,
-        args: Vec<StmtType>,
+        name: Box<Stmt>,
+        args: Vec<Stmt>,
     },
     Return {
-        value: Vec<StmtType>,
+        value: Vec<Stmt>,
     },
     Print {
-        value: Vec<StmtType>,
+        value: Vec<Stmt>,
     },
-    Input {
-        variable: String,
-    },
+    // Input {
+    //     variable: String,
+    // },
 
     Add {
-        a: Box<StmtType>,
-        b: Box<StmtType>,
+        a: Box<Stmt>,
+        b: Box<Stmt>,
     },
     Sub {
-        a: Box<StmtType>,
-        b: Box<StmtType>,
+        a: Box<Stmt>,
+        b: Box<Stmt>,
     },
     Mul {
-        a: Box<StmtType>,
-        b: Box<StmtType>,
+        a: Box<Stmt>,
+        b: Box<Stmt>,
     },
     Div {
-        a: Box<StmtType>,
-        b: Box<StmtType>,
+        a: Box<Stmt>,
+        b: Box<Stmt>,
     },
     Exp {
-        a: Box<StmtType>,
-        b: Box<StmtType>,
+        a: Box<Stmt>,
+        b: Box<Stmt>,
     },
     DivWithRem {
-        a: Box<StmtType>,
-        b: Box<StmtType>,
+        a: Box<Stmt>,
+        b: Box<Stmt>,
     },
     RemOfDiv {
-        a: Box<StmtType>,
-        b: Box<StmtType>,
+        a: Box<Stmt>,
+        b: Box<Stmt>,
     },
 
     Var {
-        name: String,
+        name: Vec<String>,
     },
     Int {
         value: i64,
@@ -68,13 +91,10 @@ pub enum StmtType {
 }
 
 #[derive(Debug)]
-pub enum StmtContent {}
-
-#[derive(Debug)]
 pub struct Stmt {
     pub s_type: StmtType,
     pub content: StmtContent,
-    pub span_parts: Vec<Span>,
+    pub span: Span,
 }
 
 #[derive(Clone, PartialEq, Debug)]

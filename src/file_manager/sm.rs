@@ -1,5 +1,6 @@
 use super::file::{File, FileId};
 use crate::consts;
+use core::panic;
 use std::{
     collections::HashMap,
     fs,
@@ -21,6 +22,11 @@ impl SourceManager {
     }
 
     pub fn push_file(&mut self, path: &Path) -> FileId {
+
+        if !path.exists() {
+            panic!("Directory \"{:?}\" not found. Please check that you haven't made any mistakes and try again.", path.to_string_lossy())
+        }
+
         let f_path: PathBuf = match fs::canonicalize(&path) {
             Ok(v) => v,
             Err(_) => panic!("Couldn`t cannonicalize file"),
